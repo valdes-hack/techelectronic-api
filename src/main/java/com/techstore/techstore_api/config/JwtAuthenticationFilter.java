@@ -30,6 +30,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String jwt = parseJwt(request);
+            
+            // Si un token valide est présent, on procède à l'authentification
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 String username = jwtUtils.getUserNameFromJwtToken(jwt);
 
@@ -44,6 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             logger.error("Impossible de définir l'authentification de l'utilisateur: {}", e);
         }
 
+        // On passe toujours au filtre suivant, que l'utilisateur soit authentifié ou anonyme
         filterChain.doFilter(request, response);
     }
 
