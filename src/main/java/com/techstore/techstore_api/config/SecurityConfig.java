@@ -81,28 +81,25 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Autorise le Front-end local ET ton domaine de production Vercel
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost:5173",
-            "https://techelectronique-frond-end.vercel.app"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        
-        // Autorise tous les Headers (dont X-Session-Id et Authorization)
-        configuration.setAllowedHeaders(List.of("*")); 
-        
-        // Expose les headers pour que React puisse les lire
-        configuration.setExposedHeaders(Arrays.asList("X-Session-Id", "Authorization"));
-        
-        configuration.setAllowCredentials(true);
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    
+    // On autorise localhost, ton domaine principal Vercel, ET tous les sous-domaines de tes déploiements Vercel ✨
+    configuration.setAllowedOriginPatterns(List.of(
+        "http://localhost:5173",
+        "https://techelectronique-frond-end.vercel.app",
+        "https://*-valdes-hacks-projects.vercel.app" // Autorise toutes les URLs de test Vercel
+    ));
+    
+    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+    configuration.setAllowedHeaders(List.of("*")); 
+    configuration.setExposedHeaders(Arrays.asList("X-Session-Id", "Authorization"));
+    configuration.setAllowCredentials(true);
+    
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+}
 
     @Bean
     public PasswordEncoder passwordEncoder() {
