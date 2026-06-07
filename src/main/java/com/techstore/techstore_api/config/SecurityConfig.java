@@ -50,14 +50,15 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .requestMatchers("/uploads/**").permitAll() 
 
             // B. ACCÈS PUBLIC : LOGIQUE MÉTIER
-            .requestMatchers("/api/v1/auth/**").permitAll()
-            .requestMatchers(
-                "/api/v1/products/**", 
-                "/api/v1/categories/**", 
-                "/api/v1/shipping-zones/**", 
-                "/api/v1/orders/**", 
-                "/api/v1/cart/**"
-            ).permitAll()
+            // B. ACCÈS PUBLIC : LOGIQUE MÉTIER (Indispensable pour le Guest Checkout)
+.requestMatchers("/api/v1/auth/**").permitAll()
+.requestMatchers(
+    "/api/v1/products", "/api/v1/products/**", 
+    "/api/v1/categories", "/api/v1/categories/**", 
+    "/api/v1/shipping-zones", "/api/v1/shipping-zones/**", 
+    "/api/v1/orders", "/api/v1/orders/**", 
+    "/api/v1/cart", "/api/v1/cart/**"
+).permitAll()
             
             // C. ACCÈS PUBLIC : REVIEWS
             .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
