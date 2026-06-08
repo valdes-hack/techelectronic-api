@@ -1,4 +1,4 @@
-package com.techstore.techstore_api.controller;
+﻿package com.techstore.techstore_api.controller;
 
 import com.techstore.techstore_api.dto.response.ApiResponse;
 import com.techstore.techstore_api.dto.response.ProductResponse;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class ProductController {
 
     private final ProductService productService;
@@ -33,16 +33,16 @@ public class ProductController {
         Page<ProductResponse> products = productService.getAllProducts(pageable);
         
         return ResponseEntity.ok(ApiResponse.<Page<ProductResponse>>builder()
-                .status("success").code(200).message("Liste des produits récupérée")
+                .status("success").code(200).message("Liste des produits rÃ©cupÃ©rÃ©e")
                 .timestamp(LocalDateTime.now()).data(products).build());
     }
 
-    // 2. Voir un produit spécifique (Détail)
+    // 2. Voir un produit spÃ©cifique (DÃ©tail)
     @GetMapping("/{slug}")
     public ResponseEntity<ApiResponse<ProductResponse>> getProductBySlug(@PathVariable String slug) {
         ProductResponse product = productService.getProductBySlug(slug);
         return ResponseEntity.ok(ApiResponse.<ProductResponse>builder()
-                .status("success").code(200).message("Détail du produit")
+                .status("success").code(200).message("DÃ©tail du produit")
                 .timestamp(LocalDateTime.now()).data(product).build());
     }
 
@@ -58,13 +58,13 @@ public class ProductController {
         Page<ProductResponse> results = productService.searchProducts(query, pageable);
         
         return ResponseEntity.ok(ApiResponse.<Page<ProductResponse>>builder()
-                .status("success").code(200).message("Résultats de recherche pour : " + query)
+                .status("success").code(200).message("RÃ©sultats de recherche pour : " + query)
                 .timestamp(LocalDateTime.now()).data(results).build());
     }
 
-    // 4. Filtrer par catégorie
+    // 4. Filtrer par catÃ©gorie
     /**
- * FILTRER LES PRODUITS PAR CATÉGORIE
+ * FILTRER LES PRODUITS PAR CATÃ‰GORIE
  * GET /api/v1/products/category/smartphones
  */
 @GetMapping("/category/{slug}")
@@ -80,7 +80,7 @@ public ResponseEntity<ApiResponse<Page<ProductResponse>>> getByCategory(
         ApiResponse.<Page<ProductResponse>>builder()
             .status("success")
             .code(200)
-            .message("Produits de la catégorie : " + slug)
+            .message("Produits de la catÃ©gorie : " + slug)
             .timestamp(LocalDateTime.now())
             .data(products)
             .build()

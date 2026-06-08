@@ -1,4 +1,4 @@
-package com.techstore.techstore_api.controller;
+﻿package com.techstore.techstore_api.controller;
 
 import com.techstore.techstore_api.dto.request.CartItemRequest;
 import com.techstore.techstore_api.dto.response.ApiResponse;
@@ -14,13 +14,13 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/v1/cart")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class CartController {
 
     private final CartService cartService;
 
     /**
-     * 1. VOIR LE PANIER (Public ou Privé)
+     * 1. VOIR LE PANIER (Public ou PrivÃ©)
      * Utilise soit le Token (Principal), soit le Header X-Session-Id
      */
     @GetMapping
@@ -39,7 +39,7 @@ public class CartController {
 
         CartResponse response = cartService.getMyCart(identifier, isUser);
         return ResponseEntity.ok(ApiResponse.<CartResponse>builder()
-                .status("success").code(200).message("Panier récupéré")
+                .status("success").code(200).message("Panier rÃ©cupÃ©rÃ©")
                 .timestamp(LocalDateTime.now()).data(response).build());
     }
 
@@ -61,12 +61,12 @@ public class CartController {
 
         CartResponse response = cartService.addToCart(request, identifier, isUser);
         return ResponseEntity.ok(ApiResponse.<CartResponse>builder()
-                .status("success").code(200).message("Produit ajouté au panier")
+                .status("success").code(200).message("Produit ajoutÃ© au panier")
                 .timestamp(LocalDateTime.now()).data(response).build());
     }
 
     /**
-     * 3. MODIFIER LA QUANTITÉ D'UN ARTICLE
+     * 3. MODIFIER LA QUANTITÃ‰ D'UN ARTICLE
      */
     @PutMapping("/update/{itemId}")
     public ResponseEntity<ApiResponse<CartResponse>> updateQuantity(
@@ -75,7 +75,7 @@ public class CartController {
         
         CartResponse response = cartService.updateQuantity(itemId, quantity);
         return ResponseEntity.ok(ApiResponse.<CartResponse>builder()
-                .status("success").code(200).message("Quantité mise à jour")
+                .status("success").code(200).message("QuantitÃ© mise Ã  jour")
                 .timestamp(LocalDateTime.now()).data(response).build());
     }
 
@@ -93,7 +93,7 @@ public class CartController {
 
         CartResponse response = cartService.removeFromCart(itemId, identifier, isUser);
         return ResponseEntity.ok(ApiResponse.<CartResponse>builder()
-                .status("success").code(200).message("Article retiré du panier")
+                .status("success").code(200).message("Article retirÃ© du panier")
                 .timestamp(LocalDateTime.now()).data(response).build());
     }
 
@@ -110,12 +110,12 @@ public class CartController {
 
         cartService.clearCart(identifier, isUser);
         return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .status("success").code(200).message("Panier vidé avec succès")
+                .status("success").code(200).message("Panier vidÃ© avec succÃ¨s")
                 .timestamp(LocalDateTime.now()).build());
     }
 
     /**
-     * 6. FUSIONNER LE PANIER (Appelé par React après le Login)
+     * 6. FUSIONNER LE PANIER (AppelÃ© par React aprÃ¨s le Login)
      */
     @PostMapping("/merge")
     public ResponseEntity<ApiResponse<CartResponse>> mergeCart(
@@ -123,12 +123,12 @@ public class CartController {
             Principal principal) {
         
         if (principal == null) {
-            throw new RuntimeException("Vous devez être connecté pour fusionner un panier");
+            throw new RuntimeException("Vous devez Ãªtre connectÃ© pour fusionner un panier");
         }
 
         CartResponse response = cartService.mergeCart(sessionId, principal.getName());
         return ResponseEntity.ok(ApiResponse.<CartResponse>builder()
-                .status("success").code(200).message("Paniers fusionnés avec succès")
+                .status("success").code(200).message("Paniers fusionnÃ©s avec succÃ¨s")
                 .timestamp(LocalDateTime.now()).data(response).build());
     }
 }

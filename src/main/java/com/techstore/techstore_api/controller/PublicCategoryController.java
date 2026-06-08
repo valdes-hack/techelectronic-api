@@ -1,4 +1,4 @@
-package com.techstore.techstore_api.controller;
+﻿package com.techstore.techstore_api.controller;
 
 import com.techstore.techstore_api.dto.response.ApiResponse;
 import com.techstore.techstore_api.dto.response.CategoryResponse;
@@ -13,12 +13,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class PublicCategoryController {
 
     private final CategoryService categoryService;
 
-    // 1. CETTE MÉTHODE RÉPOND À : GET /api/v1/categories
+    // 1. CETTE MÃ‰THODE RÃ‰POND Ã€ : GET /api/v1/categories
     @GetMapping
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAll() {
         List<CategoryResponse> categories = categoryService.getAllCategories();
@@ -26,14 +26,14 @@ public class PublicCategoryController {
             ApiResponse.<List<CategoryResponse>>builder()
                 .status("success")
                 .code(200)
-                .message("Liste des catégories récupérée")
+                .message("Liste des catÃ©gories rÃ©cupÃ©rÃ©e")
                 .timestamp(LocalDateTime.now())
                 .data(categories)
                 .build()
         );
     }
 
-    // 2. CETTE MÉTHODE RÉPOND À : GET /api/v1/categories/parents
+    // 2. CETTE MÃ‰THODE RÃ‰POND Ã€ : GET /api/v1/categories/parents
     @GetMapping("/parents")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getParents() {
         List<CategoryResponse> categories = categoryService.getParentCategories();
@@ -41,7 +41,7 @@ public class PublicCategoryController {
             ApiResponse.<List<CategoryResponse>>builder()
                 .status("success")
                 .code(200)
-                .message("Catégories parentes récupérées")
+                .message("CatÃ©gories parentes rÃ©cupÃ©rÃ©es")
                 .timestamp(LocalDateTime.now())
                 .data(categories)
                 .build()

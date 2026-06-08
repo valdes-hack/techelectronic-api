@@ -1,4 +1,4 @@
-package com.techstore.techstore_api.controller;
+﻿package com.techstore.techstore_api.controller;
 
 import com.techstore.techstore_api.dto.request.ReviewRequest;
 import com.techstore.techstore_api.dto.response.ApiResponse;
@@ -22,7 +22,7 @@ public class ReviewController {
     private final ReviewRepository reviewRepository;
 
     /**
-     * AJOUTER UN AVIS (Privé - Nécessite d'être connecté)
+     * AJOUTER UN AVIS (PrivÃ© - NÃ©cessite d'Ãªtre connectÃ©)
      */
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> addReview(@RequestBody ReviewRequest request, Principal principal) {
@@ -30,7 +30,7 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .status("success")
                 .code(200)
-                .message("Votre avis a été publié avec succès !")
+                .message("Votre avis a Ã©tÃ© publiÃ© avec succÃ¨s !")
                 .timestamp(LocalDateTime.now())
                 .build());
     }

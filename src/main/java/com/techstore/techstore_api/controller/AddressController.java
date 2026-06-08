@@ -1,4 +1,4 @@
-package com.techstore.techstore_api.controller;
+﻿package com.techstore.techstore_api.controller;
 
 import com.techstore.techstore_api.dto.request.AddressRequest;
 import com.techstore.techstore_api.dto.response.AddressResponse;
@@ -23,7 +23,7 @@ public class AddressController {
     public ResponseEntity<ApiResponse<AddressResponse>> add(@RequestBody AddressRequest request, Principal principal) {
         AddressResponse response = addressService.addAddress(request, principal.getName());
         return ResponseEntity.ok(ApiResponse.<AddressResponse>builder()
-                .status("success").code(201).message("Adresse ajoutée")
+                .status("success").code(201).message("Adresse ajoutÃ©e")
                 .timestamp(LocalDateTime.now()).data(response).build());
     }
 
@@ -38,13 +38,13 @@ public class AddressController {
     public ResponseEntity<ApiResponse<AddressResponse>> update(@PathVariable Long id, @RequestBody AddressRequest request, Principal principal) {
         AddressResponse response = addressService.updateAddress(id, request, principal.getName());
         return ResponseEntity.ok(ApiResponse.<AddressResponse>builder()
-                .status("success").code(200).message("Adresse mise à jour").data(response).build());
+                .status("success").code(200).message("Adresse mise Ã  jour").data(response).build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id, Principal principal) {
         addressService.deleteAddress(id, principal.getName());
         return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .status("success").code(200).message("Adresse supprimée").build());
+                .status("success").code(200).message("Adresse supprimÃ©e").build());
     }
 }

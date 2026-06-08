@@ -21,13 +21,5 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:" + uploadPath + "/");
     }
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        // On autorise ton site Vercel à faire des requêtes sur l'API 🔐
-        registry.addMapping("/**")
-                .allowedOrigins("https://techelectronique-front-end.vercel.app") // Ton URL Vercel exacte
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
+
 }

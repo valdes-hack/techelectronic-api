@@ -1,4 +1,4 @@
-package com.techstore.techstore_api.controller;
+﻿package com.techstore.techstore_api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techstore.techstore_api.dto.request.LoginRequest;
@@ -24,7 +24,7 @@ public class AuthController {
 
     /**
      * INSCRIPTION AVEC PHOTO DE PROFIL (Multipart)
-     * Retourne désormais un AuthResponse (User + Token) pour connexion auto
+     * Retourne dÃ©sormais un AuthResponse (User + Token) pour connexion auto
      */
     @PostMapping(value = "/register", consumes = {"multipart/form-data"})
     public ResponseEntity<ApiResponse<AuthResponse>> register(
@@ -40,7 +40,7 @@ public class AuthController {
             request.setProfilePictureUrl("http://localhost:8080/uploads/profiles/" + fileName);
         }
 
-        // 3. Appel du service (qui génère maintenant un Token)
+        // 3. Appel du service (qui gÃ©nÃ¨re maintenant un Token)
         ApiResponse<AuthResponse> response = authService.registerUser(request);
         
         return ResponseEntity.status(response.getCode()).body(response);

@@ -1,4 +1,4 @@
-package com.techstore.techstore_api.controller;
+﻿package com.techstore.techstore_api.controller;
 
 import com.techstore.techstore_api.dto.request.OrderRequest;
 import com.techstore.techstore_api.dto.response.ApiResponse;
@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class OrderController {
 
     private final OrderService orderService;
@@ -36,7 +36,7 @@ public ResponseEntity<ApiResponse<OrderResponse>> placeOrder(
         ApiResponse.<OrderResponse>builder()
             .status("success")
             .code(201)
-            .message("Commande créée")
+            .message("Commande crÃ©Ã©e")
             .timestamp(LocalDateTime.now())
             .data(response)
             .build()
@@ -54,7 +54,7 @@ public ResponseEntity<ApiResponse<OrderResponse>> placeOrder(
             ApiResponse.<List<OrderResponse>>builder()
                 .status("success")
                 .code(200)
-                .message("Historique des commandes récupéré")
+                .message("Historique des commandes rÃ©cupÃ©rÃ©")
                 .timestamp(LocalDateTime.now())
                 .data(orders)
                 .build()
@@ -62,7 +62,7 @@ public ResponseEntity<ApiResponse<OrderResponse>> placeOrder(
     }
 
     /**
-     * 3. VOIR LE DÉTAIL D'UNE COMMANDE
+     * 3. VOIR LE DÃ‰TAIL D'UNE COMMANDE
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<OrderResponse>> getOrderDetails(
@@ -91,7 +91,7 @@ public ResponseEntity<ApiResponse<OrderResponse>> trackOrder(@PathVariable Strin
         ApiResponse.<OrderResponse>builder()
             .status("success")
             .code(200)
-            .message("Informations de suivi récupérées")
+            .message("Informations de suivi rÃ©cupÃ©rÃ©es")
             .timestamp(LocalDateTime.now())
             .data(response)
             .build()

@@ -88,6 +88,7 @@ public CorsConfigurationSource corsConfigurationSource() {
     configuration.setAllowedOriginPatterns(List.of(
         "http://localhost:5173",
         "https://techelectronique-frond-end.vercel.app",
+        "https://techelectronique-front-end.vercel.app",
         "https://*-valdes-hacks-projects.vercel.app" // Autorise toutes les URLs de test Vercel
     ));
     
