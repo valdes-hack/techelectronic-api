@@ -60,8 +60,9 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
     "/api/v1/cart", "/api/v1/cart/**"
 ).permitAll()
             
-            // C. ACCÈS PUBLIC : REVIEWS
+            // C. ACCÈS PUBLIC : REVIEWS & SETTINGS
             .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/v1/settings").permitAll()
             
             // D. ACCÈS PRIVÉ : ADRESSES & PROFIL
             .requestMatchers("/api/v1/addresses/**").authenticated()
