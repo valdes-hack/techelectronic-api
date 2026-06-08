@@ -27,11 +27,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<String>> handleRuntime(RuntimeException e) {
-        return ResponseEntity.status(400).body(
+        return ResponseEntity.status(500).body(
             ApiResponse.<String>builder()
                 .status("error")
-                .code(400)
-                .message(e.getMessage())
+                .code(500)
+                .message("Erreur interne du serveur : " + e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build()
         );
