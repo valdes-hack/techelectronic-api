@@ -13,9 +13,8 @@ public class AppSettingService {
     private final AppSettingRepository appSettingRepository;
 
     public AppSetting getSettings() {
-        return appSettingRepository.findById(1L).orElseGet(() -> {
+        return appSettingRepository.findAll().stream().findFirst().orElseGet(() -> {
             AppSetting defaultSettings = new AppSetting();
-            defaultSettings.setId(1L);
             return appSettingRepository.save(defaultSettings);
         });
     }
