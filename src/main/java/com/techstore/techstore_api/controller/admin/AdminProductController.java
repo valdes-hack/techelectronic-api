@@ -110,10 +110,14 @@ public class AdminProductController {
             if (files != null && !files.isEmpty()) {
                 List<String> newUrls = files.stream()
                         .map(file -> {
-                            String storedUrl = fileStorageService.storeFile(file);
-                            // Si l'URL est déjà complète (Cloudinary), l'utiliser telle quelle
-                            // Sinon, ajouter le préfixe local
-                            return storedUrl.startsWith("http") ? storedUrl : baseUrl + "/uploads/products/" + storedUrl;
+                            try {
+                                String storedUrl = fileStorageService.storeFile(file);
+                                // Si l'URL est déjà complète (Cloudinary), l'utiliser telle quelle
+                                // Sinon, ajouter le préfixe local
+                                return storedUrl.startsWith("http") ? storedUrl : baseUrl + "/uploads/products/" + storedUrl;
+                            } catch (Exception e) {
+                                throw new RuntimeException("Erreur lors du stockage de l'image: " + e.getMessage(), e);
+                            }
                         })
                         .collect(Collectors.toList());
                 
@@ -126,8 +130,9 @@ public class AdminProductController {
                     .status("success").code(200).message("Produit mis à jour").data(response).build());
 
         } catch (Exception e) {
-            return ResponseEntity.status(409).body(ApiResponse.<ProductResponse>builder()
-                    .status("error").code(409).message("Erreur mise à jour : " + e.getMessage()).build());
+            e.printStackTrace(); // Pour voir l'erreur complète dans les logs
+            return ResponseEntity.status(500).body(ApiResponse.<ProductResponse>builder()
+                    .status("error").code(500).message("Erreur mise à jour : " + e.getMessage()).build());
         }
     }
 
