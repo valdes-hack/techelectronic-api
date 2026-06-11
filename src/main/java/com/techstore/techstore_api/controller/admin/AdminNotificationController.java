@@ -49,4 +49,13 @@ public class AdminNotificationController {
         notificationRepository.save(n);
         return ResponseEntity.ok(ApiResponse.<Void>builder().status("success").build());
     }
+
+    // 3. Marquer tout comme lu
+    @PatchMapping("/read-all")
+    public ResponseEntity<ApiResponse<Void>> markAllAsRead() {
+        List<AdminNotification> unreadList = notificationRepository.findByIsReadFalseOrderByCreatedAtDesc();
+        unreadList.forEach(n -> n.setRead(true));
+        notificationRepository.saveAll(unreadList);
+        return ResponseEntity.ok(ApiResponse.<Void>builder().status("success").build());
+    }
 }

@@ -48,6 +48,10 @@ public ResponseEntity<ApiResponse<OrderResponse>> placeOrder(
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getMyOrders(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(ApiResponse.<List<OrderResponse>>builder()
+                .status("error").code(401).message("Non autorisÃ©").build());
+        }
         List<OrderResponse> orders = orderService.getMyOrders(principal.getName());
         
         return ResponseEntity.ok(
@@ -69,6 +73,10 @@ public ResponseEntity<ApiResponse<OrderResponse>> placeOrder(
             @PathVariable Long id, 
             Principal principal) {
         
+        if (principal == null) {
+            return ResponseEntity.status(401).body(ApiResponse.<OrderResponse>builder()
+                .status("error").code(401).message("Non autorisÃ©").build());
+        }
         OrderResponse response = orderService.getOrderDetails(id, principal.getName());
         
         return ResponseEntity.ok(

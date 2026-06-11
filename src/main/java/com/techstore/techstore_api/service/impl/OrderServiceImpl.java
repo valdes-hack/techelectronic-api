@@ -174,7 +174,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getMyOrders(String userEmail) {
-        User user = userRepository.findByEmail(userEmail).orElseThrow();
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) {
+            return new java.util.ArrayList<>();
+        }
         return orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
