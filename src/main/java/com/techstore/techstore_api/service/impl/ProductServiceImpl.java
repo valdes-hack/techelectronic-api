@@ -128,8 +128,23 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
 
     // 1. Mise à jour de TOUS les champs (pas seulement 4)
     product.setName(request.getName());
-    product.setSku(request.getSku());
-    product.setSlug(request.getSlug());
+    
+    // Ne mettre à jour le SKU que s'il est différent et n'existe pas déjà
+    if (request.getSku() != null && !request.getSku().equals(product.getSku())) {
+        if (productRepository.existsBySkuAndIdNot(request.getSku(), id)) {
+            throw new RuntimeException("SKU déjà utilisé par un autre produit");
+        }
+        product.setSku(request.getSku());
+    }
+    
+    // Ne mettre à jour le slug que s'il est différent et n'existe pas déjà
+    if (request.getSlug() != null && !request.getSlug().equals(product.getSlug())) {
+        if (productRepository.existsBySlugAndIdNot(request.getSlug(), id)) {
+            throw new RuntimeException("Slug déjà utilisé par un autre produit");
+        }
+        product.setSlug(request.getSlug());
+    }
+    
     product.setBrand(request.getBrand());
     product.setDescription(request.getDescription());
     product.setBasePrice(request.getBasePrice());

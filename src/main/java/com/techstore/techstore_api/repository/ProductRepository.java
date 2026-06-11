@@ -20,6 +20,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // ✨ AJOUTE CETTE LIGNE POUR RÉPARER L'ERREUR ✨
     Optional<Product> findBySku(String sku);
 
+    boolean existsBySkuAndIdNot(String sku, Long id);
+    boolean existsBySlugAndIdNot(String slug, Long id);
+
     Page<Product> findByCategoryIdAndIsActiveTrue(Long categoryId, Pageable pageable);
 
     Page<Product> findByIsActiveTrue(Pageable pageable);
