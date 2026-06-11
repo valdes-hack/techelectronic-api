@@ -54,4 +54,15 @@ public class DashboardStatsResponse {
         private long quantitySold;
         private BigDecimal totalSales;
     }
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LowStockItemDTO {
+        private Long id;
+        private String name;
+        private String sku;
+        private int stockQty;
+        private String type; // "PRODUCT" or "VARIANT"
+    }
 }

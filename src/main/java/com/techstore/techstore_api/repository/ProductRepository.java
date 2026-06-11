@@ -29,6 +29,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // Compter les produits en stock faible pour le dashboard
     long countByStockQtyLessThanAndIsActiveTrue(Integer threshold);
+    
+    java.util.List<Product> findByStockQtyLessThanAndIsActiveTrueOrderByStockQtyAsc(Integer threshold);
 
     @Query(value = "SELECT * FROM products WHERE is_active = true AND MATCH(name, description, brand) AGAINST(?1 IN BOOLEAN MODE)", 
            countQuery = "SELECT count(*) FROM products WHERE is_active = true AND MATCH(name, description, brand) AGAINST(?1 IN BOOLEAN MODE)", 

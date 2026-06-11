@@ -21,4 +21,6 @@ void deleteByProductId(Long productId);
 
     // Compter les variantes en stock faible pour le dashboard
     long countByStockQtyLessThan(Integer threshold);
+
+    java.util.List<ProductVariant> findByStockQtyLessThanOrderByStockQtyAsc(Integer threshold);
 }

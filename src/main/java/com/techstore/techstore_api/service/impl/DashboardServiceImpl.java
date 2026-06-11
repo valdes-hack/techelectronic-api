@@ -138,4 +138,43 @@ public class DashboardServiceImpl implements DashboardService {
                 .items(itemResponses)
                 .build();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DashboardStatsResponse.LowStockItemDTO> getLowStockItems() {
+        int threshold = 5;
+        List<DashboardStatsResponse.LowStockItemDTO> lowStockItems = new java.util.ArrayList<>();
+        
+        // Fetch low stock products
+        List<com.techstore.techstore_api.model.Product> lowProducts = productRepository.findByStockQtyLessThanAndIsActiveTrueOrderByStockQtyAsc(threshold);
+        for (com.techstore.techstore_api.model.Product p : lowProducts) {
+            // Only add if it doesn't have variants (otherwise the variant stock matters)
+            if (p.getVariants() == null || p.getVariants().isEmpty()) {
+                lowStockItems.add(DashboardStatsResponse.LowStockItemDTO.builder()
+                        .id(p.getId())
+                        .name(p.getName())
+                        .sku(p.getSku())
+                        .stockQty(p.getStockQty())
+                        .type("PRODUCT")
+                        .build());
+            }
+        }
+        
+        // Fetch low stock variants
+        List<com.techstore.techstore_api.model.ProductVariant> lowVariants = productVariantRepository.findByStockQtyLessThanOrderByStockQtyAsc(threshold);
+        for (com.techstore.techstore_api.model.ProductVariant v : lowVariants) {
+            lowStockItems.add(DashboardStatsResponse.LowStockItemDTO.builder()
+                    .id(v.getId())
+                    .name(v.getProduct().getName() + " - " + v.getColor() + " " + v.getStorage())
+                    .sku(v.getSkuVariant())
+                    .stockQty(v.getStockQty())
+                    .type("VARIANT")
+                    .build());
+        }
+        
+        // Sort by stock quantity ascending
+        lowStockItems.sort((a, b) -> Integer.compare(a.getStockQty(), b.getStockQty()));
+        
+        return lowStockItems;
+    }
 }

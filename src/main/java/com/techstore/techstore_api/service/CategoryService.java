@@ -13,4 +13,5 @@ public interface CategoryService {
     void deleteCategory(Long id);
     List<CategoryResponse> getAllCategories();
     List<CategoryResponse> getParentCategories();
+    List<com.techstore.techstore_api.dto.response.CategoryGroupedResponse> getGroupedCategories();
 }

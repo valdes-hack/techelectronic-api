@@ -30,7 +30,24 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .status("success")
                 .code(200)
-                .message("Votre avis a Ã©tÃ© publiÃ© avec succÃ¨s !")
+                .message("Votre avis a été publié avec succès !")
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
+
+    /**
+     * AJOUTER UN AVIS EN TANT QU'INVITÉ (Public - Nécessite le trackingToken)
+     */
+    @PostMapping("/guest")
+    public ResponseEntity<ApiResponse<Void>> addGuestReview(
+            @RequestBody ReviewRequest request, 
+            @RequestParam("token") String trackingToken) {
+        
+        reviewService.addGuestReview(request, trackingToken);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status("success")
+                .code(200)
+                .message("Votre avis invité a été publié avec succès !")
                 .timestamp(LocalDateTime.now())
                 .build());
     }

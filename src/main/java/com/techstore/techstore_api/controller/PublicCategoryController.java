@@ -41,7 +41,22 @@ public class PublicCategoryController {
             ApiResponse.<List<CategoryResponse>>builder()
                 .status("success")
                 .code(200)
-                .message("CatÃ©gories parentes rÃ©cupÃ©rÃ©es")
+                .message("Catégories parentes récupérées")
+                .timestamp(LocalDateTime.now())
+                .data(categories)
+                .build()
+        );
+    }
+
+    // 3. CETTE MÉTHODE RÉPOND À : GET /api/v1/categories/grouped-products
+    @GetMapping("/grouped-products")
+    public ResponseEntity<ApiResponse<List<com.techstore.techstore_api.dto.response.CategoryGroupedResponse>>> getGroupedCategories() {
+        List<com.techstore.techstore_api.dto.response.CategoryGroupedResponse> categories = categoryService.getGroupedCategories();
+        return ResponseEntity.ok(
+            ApiResponse.<List<com.techstore.techstore_api.dto.response.CategoryGroupedResponse>>builder()
+                .status("success")
+                .code(200)
+                .message("Catégories groupées récupérées")
                 .timestamp(LocalDateTime.now())
                 .data(categories)
                 .build()

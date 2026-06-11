@@ -35,4 +35,7 @@ public class AppSetting {
 
     @Column(length = 1000)
     private String logoUrl;
+
+    @Column(length = 1000)
+    private String heroImageUrl;
 }

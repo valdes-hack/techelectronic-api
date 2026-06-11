@@ -35,4 +35,20 @@ public class AdminDashboardController {
                 .data(stats)
                 .build());
     }
+
+    /**
+     * OBTENIR TOUS LES PRODUITS EN STOCK CRITIQUE
+     * GET /api/v1/admin/dashboard/low-stock
+     */
+    @GetMapping("/low-stock")
+    public ResponseEntity<ApiResponse<java.util.List<DashboardStatsResponse.LowStockItemDTO>>> getLowStockItems() {
+        java.util.List<DashboardStatsResponse.LowStockItemDTO> lowStockItems = dashboardService.getLowStockItems();
+        return ResponseEntity.ok(ApiResponse.<java.util.List<DashboardStatsResponse.LowStockItemDTO>>builder()
+                .status("success")
+                .code(200)
+                .message("Produits en stock critique récupérés avec succès")
+                .timestamp(LocalDateTime.now())
+                .data(lowStockItems)
+                .build());
+    }
 }

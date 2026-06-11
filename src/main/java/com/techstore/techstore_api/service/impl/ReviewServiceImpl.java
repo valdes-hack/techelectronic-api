@@ -65,4 +65,62 @@ public class ReviewServiceImpl implements ReviewService {
         // Recalcule la moyenne du produit automatiquement dans la table 'products'
         reviewRepository.updateProductAverageRating(product.getId());
     }
+
+    @Override
+    @Transactional
+    public void addGuestReview(ReviewRequest request, String trackingToken) {
+        // 1. Récupérer le produit et la commande
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
+        
+        Order order = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new RuntimeException("Commande non trouvée"));
+
+        // 2. SÉCURITÉ : Vérifier le token
+        if (order.getTrackingToken() == null || !order.getTrackingToken().equals(trackingToken)) {
+            throw new RuntimeException("Action interdite : Token invalide pour cette commande.");
+        }
+
+        // 3. SÉCURITÉ : Vérifier si le produit était bien dans cette commande
+        boolean hasPurchased = order.getItems().stream()
+                .anyMatch(item -> item.getProduct().getId().equals(product.getId()));
+        
+        if (!hasPurchased) {
+            throw new RuntimeException("Erreur : vous n'avez pas acheté ce produit dans cette commande.");
+        }
+
+        // 4. SÉCURITÉ : Un seul avis par produit et par commande
+        // Pour les invités, le user est null ou l'id de l'invité. Mais on a user_id = order.getUser().getId() si guest?
+        // Wait, for guest, user might be null, or user.isGuest = true.
+        Long userId = order.getUser() != null ? order.getUser().getId() : null;
+        if (userId != null) {
+            if (reviewRepository.existsByUserIdAndOrderIdAndProductId(userId, order.getId(), product.getId())) {
+                throw new RuntimeException("Vous avez déjà laissé un avis pour ce produit concernant cet achat.");
+            }
+        } else {
+            // Need a way to check if guest already reviewed. If userId is null, we just check by orderId and productId.
+            // Let's assume order.getUser() is created even for guests (as seen in OrderServiceImpl.java:53).
+            // So userId is NEVER null in our hybrid logic.
+            // Let's just use the order's user ID.
+            if (reviewRepository.existsByUserIdAndOrderIdAndProductId(order.getUser().getId(), order.getId(), product.getId())) {
+                throw new RuntimeException("Vous avez déjà laissé un avis pour ce produit concernant cet achat.");
+            }
+        }
+
+        // 5. ENREGISTREMENT DE L'AVIS
+        Review review = Review.builder()
+                .product(product)
+                .user(order.getUser()) // Le profil invité créé
+                .order(order)
+                .rating(request.getRating())
+                .title(request.getTitle())
+                .body(request.getBody())
+                .isVerified(true)
+                .build();
+        
+        reviewRepository.save(review);
+
+        // 6. Recalculer la moyenne
+        reviewRepository.updateProductAverageRating(product.getId());
+    }
 }
