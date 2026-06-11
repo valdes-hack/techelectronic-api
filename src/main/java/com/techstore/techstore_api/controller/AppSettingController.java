@@ -4,6 +4,7 @@ import com.techstore.techstore_api.dto.response.ApiResponse;
 import com.techstore.techstore_api.model.AppSetting;
 import com.techstore.techstore_api.service.AppSettingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,9 @@ public class AppSettingController {
 
     private final AppSettingService appSettingService;
     private final FileStorageService fileStorageService;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     // Accessible publiquement pour le Front-End (Navbar, Footer)
     @GetMapping
@@ -52,7 +56,10 @@ public class AppSettingController {
         String url = fileStorageService.storeFile(file);
         
         AppSetting settings = appSettingService.getSettings();
-        settings.setHeroImageUrl(url.startsWith("http") ? url : "/uploads/products/" + url);
+        // Si l'URL est déjà complète (Cloudinary), l'utiliser telle quelle
+        // Sinon, ajouter le préfixe local
+        String fullUrl = url.startsWith("http") ? url : baseUrl + "/uploads/products/" + url;
+        settings.setHeroImageUrl(fullUrl);
         
         return ResponseEntity.ok(ApiResponse.<AppSetting>builder()
                 .status("success")
