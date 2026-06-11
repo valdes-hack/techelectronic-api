@@ -165,7 +165,7 @@ public class DashboardServiceImpl implements DashboardService {
         for (com.techstore.techstore_api.model.ProductVariant v : lowVariants) {
             lowStockItems.add(DashboardStatsResponse.LowStockItemDTO.builder()
                     .id(v.getId())
-                    .name(v.getProduct().getName() + " - " + v.getColor() + " " + v.getStorage())
+                    .name(v.getProduct().getName() + " - " + (v.getAttributes() != null ? v.getAttributes() : v.getSkuVariant()))
                     .sku(v.getSkuVariant())
                     .stockQty(v.getStockQty())
                     .type("VARIANT")
