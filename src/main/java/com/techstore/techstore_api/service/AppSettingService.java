@@ -33,6 +33,9 @@ public class AppSettingService {
             current.setHeroImageUrl(newSettings.getHeroImageUrl());
         }
         if (newSettings.getHeroImagesUrls() != null) {
+            if (current.getHeroImagesUrls() == null) {
+                current.setHeroImagesUrls(new java.util.ArrayList<>());
+            }
             current.getHeroImagesUrls().clear();
             current.getHeroImagesUrls().addAll(newSettings.getHeroImagesUrls());
         }
