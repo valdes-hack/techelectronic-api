@@ -49,7 +49,7 @@ public class AppSettingController {
                 .timestamp(LocalDateTime.now())
                 .build());
     }
-    // Upload d'une image Hero
+    // Upload d'une image Hero (Ancienne méthode, gardée pour rétrocompatibilité si besoin)
     @PostMapping(value = "/hero-image", consumes = "multipart/form-data")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<AppSetting>> uploadHeroImage(@RequestParam("file") MultipartFile file) {
@@ -66,6 +66,22 @@ public class AppSettingController {
                 .code(200)
                 .message("Image d'accueil mise à jour")
                 .data(appSettingService.updateSettings(settings))
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
+
+    // Upload générique d'un média (Image ou Vidéo)
+    @PostMapping(value = "/upload-media", consumes = "multipart/form-data")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<String>> uploadMedia(@RequestParam("file") MultipartFile file) {
+        String url = fileStorageService.storeFile(file);
+        String fullUrl = url.startsWith("http") ? url : baseUrl + "/uploads/products/" + url;
+        
+        return ResponseEntity.ok(ApiResponse.<String>builder()
+                .status("success")
+                .code(200)
+                .message("Média uploadé avec succès")
+                .data(fullUrl)
                 .timestamp(LocalDateTime.now())
                 .build());
     }

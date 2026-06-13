@@ -29,6 +29,15 @@ public class AppSettingService {
         if (newSettings.getLogoUrl() != null && !newSettings.getLogoUrl().isEmpty()) {
             current.setLogoUrl(newSettings.getLogoUrl());
         }
+        if (newSettings.getHeroImageUrl() != null && !newSettings.getHeroImageUrl().isEmpty()) {
+            current.setHeroImageUrl(newSettings.getHeroImageUrl());
+        }
+        if (newSettings.getHeroImagesUrls() != null) {
+            current.getHeroImagesUrls().clear();
+            current.getHeroImagesUrls().addAll(newSettings.getHeroImagesUrls());
+        }
+        current.setHeroVideoUrl(newSettings.getHeroVideoUrl());
+
         return appSettingRepository.save(current);
     }
 }
