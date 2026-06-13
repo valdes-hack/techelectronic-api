@@ -39,9 +39,8 @@ public class AppSetting {
     @Column(length = 1000)
     private String heroImageUrl;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "app_settings_hero_images", joinColumns = @JoinColumn(name = "app_setting_id"))
-    @Column(name = "image_url", length = 1000)
+    @jakarta.persistence.Convert(converter = com.techstore.techstore_api.util.StringListConverter.class)
+    @Column(name = "hero_images_urls", columnDefinition = "TEXT")
     @Builder.Default
     private java.util.List<String> heroImagesUrls = new java.util.ArrayList<>();
 
