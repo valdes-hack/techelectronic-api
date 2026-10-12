@@ -40,24 +40,35 @@ public class CartServiceImpl implements CartService {
                 .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
 
         ProductVariant variant = null;
-        int availableStock = product.getStockQty();
+        int availableStock = product.getStockQty() != null ? product.getStockQty() : 0;
         BigDecimal price = (product.getDiscountPrice() != null) ? product.getDiscountPrice() : product.getBasePrice();
 
         // 3. Gestion de la variante
         if (request.getVariantId() != null) {
             variant = variantRepository.findById(request.getVariantId())
                     .orElseThrow(() -> new RuntimeException("Variante non trouvée"));
-            availableStock = variant.getStockQty();
+            availableStock = variant.getStockQty() != null ? variant.getStockQty() : 0;
             price = variant.getPrice();
+        } else {
+            // Si aucune variante n'a été spécifiée, vérifier si le produit possède des variantes
+            List<ProductVariant> variants = variantRepository.findByProductId(product.getId());
+            if (!variants.isEmpty()) {
+                variant = variants.stream()
+                        .filter(v -> v.getStockQty() != null && v.getStockQty() >= request.getQuantity())
+                        .findFirst()
+                        .orElse(variants.stream().filter(v -> v.getStockQty() != null && v.getStockQty() > 0).findFirst().orElse(variants.get(0)));
+                availableStock = variant.getStockQty() != null ? variant.getStockQty() : 0;
+                price = variant.getPrice();
+            }
         }
 
         // 4. VÉRIFICATION DU STOCK
         if (request.getQuantity() > availableStock) {
-            throw new RuntimeException("Stock insuffisant. Il ne reste que " + availableStock + " articles.");
+            throw new RuntimeException("Stock insuffisant. Il ne reste que " + availableStock + " article(s) disponible(s).");
         }
 
         // 5. Vérifier si l'article existe déjà dans ce panier
-        final Long reqVariantId = request.getVariantId();
+        final Long reqVariantId = variant != null ? variant.getId() : null;
         CartItem existingItem = cart.getItems().stream()
                 .filter(item -> item.getProduct().getId().equals(request.getProductId()) &&
                         Objects.equals(item.getVariant() != null ? item.getVariant().getId() : null, reqVariantId))
@@ -65,7 +76,7 @@ public class CartServiceImpl implements CartService {
 
         if (existingItem != null) {
             int newQuantity = existingItem.getQuantity() + request.getQuantity();
-            if (newQuantity > availableStock) throw new RuntimeException("Action impossible : stock total dépassé.");
+            if (newQuantity > availableStock) throw new RuntimeException("Action impossible : le stock disponible est de " + availableStock + " article(s).");
             existingItem.setQuantity(newQuantity);
         } else {
             CartItem newItem = CartItem.builder()
@@ -106,7 +117,9 @@ public class CartServiceImpl implements CartService {
         CartItem item = cartItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Article non trouvé"));
         
-        int availableStock = (item.getVariant() != null) ? item.getVariant().getStockQty() : item.getProduct().getStockQty();
+        int availableStock = (item.getVariant() != null) 
+                ? (item.getVariant().getStockQty() != null ? item.getVariant().getStockQty() : 0)
+                : (item.getProduct().getStockQty() != null ? item.getProduct().getStockQty() : 0);
         if (quantity > availableStock) {
             throw new RuntimeException("Stock insuffisant (" + availableStock + " max).");
         }

@@ -80,6 +80,14 @@ public ProductResponse createProduct(ProductRequest request) {
     Category category = categoryRepository.findById(request.getCategoryId())
             .orElseThrow(() -> new RuntimeException("Catégorie inexistante."));
 
+    int initialStock = request.getStockQty() != null ? request.getStockQty() : 0;
+    if (request.getVariants() != null && !request.getVariants().isEmpty()) {
+        int variantTotal = request.getVariants().stream()
+                .mapToInt(v -> v.getStockQty() != null ? v.getStockQty() : 0)
+                .sum();
+        if (variantTotal > 0) initialStock = variantTotal;
+    }
+
     Product product = Product.builder()
             .name(request.getName())
             .sku(request.getSku())
@@ -89,7 +97,7 @@ public ProductResponse createProduct(ProductRequest request) {
             .category(category)
             .basePrice(request.getBasePrice())
             .costPrice(request.getCostPrice())
-            .stockQty(0) 
+            .stockQty(initialStock) 
             .isActive(true)
             .build();
     
@@ -110,7 +118,7 @@ public ProductResponse createProduct(ProductRequest request) {
                     .product(savedProduct)
                     .skuVariant(vReq.getSkuVariant())
                     .price(vReq.getPrice())
-                    .stockQty(vReq.getStockQty())
+                    .stockQty(vReq.getStockQty() != null ? vReq.getStockQty() : 0)
                     .attributes(vReq.getAttributes())
                     .build());
         });
@@ -172,10 +180,19 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
             variant.setProduct(product);
             variant.setSkuVariant(vReq.getSkuVariant());
             variant.setPrice(vReq.getPrice());
-            variant.setStockQty(vReq.getStockQty());
+            variant.setStockQty(vReq.getStockQty() != null ? vReq.getStockQty() : 0);
             variant.setAttributes(vReq.getAttributes());
             variantRepository.save(variant);
         });
+
+        int variantTotal = request.getVariants().stream()
+                .mapToInt(v -> v.getStockQty() != null ? v.getStockQty() : 0)
+                .sum();
+        if (variantTotal > 0 || request.getStockQty() == null) {
+            product.setStockQty(variantTotal);
+        }
+    } else if (request.getStockQty() != null) {
+        product.setStockQty(request.getStockQty());
     }
 
     return mapToProductResponse(productRepository.save(product));
