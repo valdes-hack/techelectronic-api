@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.PageRequest;
 import com.techstore.techstore_api.dto.response.CategoryGroupedResponse;
 import com.techstore.techstore_api.dto.response.ProductResponse;
@@ -37,6 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
     @Override
     @Transactional
+    @CacheEvict(value = "categories", allEntries = true)
     public CategoryResponse createCategory(CategoryRequest request) {
         Category category = Category.builder()
                 .name(request.getName())
@@ -60,6 +63,7 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     @Transactional
+    @CacheEvict(value = "categories", allEntries = true)
     public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée avec l'id : " + id));
@@ -99,6 +103,7 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable("categories")
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll().stream()
                 .map(this::mapToResponse)
@@ -110,6 +115,7 @@ public class CategoryServiceImpl implements CategoryService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable("categories")
     public List<CategoryResponse> getParentCategories() {
         return categoryRepository.findByParentIsNull().stream()
                 .map(this::mapToResponse)
@@ -131,6 +137,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
     @Override
     @Transactional
+    @CacheEvict(value = "categories", allEntries = true)
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
@@ -142,6 +149,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable("categories")
     public List<CategoryGroupedResponse> getGroupedCategories() {
         return categoryRepository.findByParentIsNull().stream()
                 .map(cat -> {

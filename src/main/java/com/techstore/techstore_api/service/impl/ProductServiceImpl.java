@@ -17,6 +17,7 @@ import java.util.Optional; // ✨ AJOUTE CET IMPORT ✨
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,8 +36,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
-        return productRepository.findByIsActiveTrue(pageable)
-                .map(this::mapToProductResponse);
+        return mapProductPage(productRepository.findByIsActiveTrue(pageable));
     }
 
     @Override
@@ -58,8 +58,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProductResponse> searchProducts(String keyword, Pageable pageable) {
-        return productRepository.searchProducts(keyword, pageable)
-                .map(this::mapToProductResponse);
+        return mapProductPage(productRepository.searchProducts(keyword, pageable));
     }
 
     @Override
@@ -68,8 +67,7 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findBySlug(categorySlug)
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée : " + categorySlug));
         
-        return productRepository.findByCategoryIdAndIsActiveTrue(category.getId(), pageable)
-                .map(this::mapToProductResponse);
+        return mapProductPage(productRepository.findByCategoryIdAndIsActiveTrue(category.getId(), pageable));
     }
 
     // ==========================================
@@ -234,8 +232,70 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
     }
 
     // ==========================================
-    // 🔄 MAPPING TOOLS
+    // 🔄 MAPPING TOOLS (OPTIMISÉ BULK / ANTI-N+1)
     // ==========================================
+
+    private Page<ProductResponse> mapProductPage(Page<Product> productPage) {
+        if (productPage.isEmpty()) {
+            return productPage.map(this::mapToProductResponse);
+        }
+        List<Long> productIds = productPage.getContent().stream()
+                .map(Product::getId)
+                .toList();
+
+        Map<Long, List<ProductVariant>> variantsByProduct = variantRepository.findByProductIdIn(productIds).stream()
+                .filter(v -> v.getProduct() != null)
+                .collect(Collectors.groupingBy(v -> v.getProduct().getId()));
+
+        Map<Long, List<ProductImage>> imagesByProduct = imageRepository.findByProductIdInOrderBySortOrderAsc(productIds).stream()
+                .filter(img -> img.getProduct() != null)
+                .collect(Collectors.groupingBy(img -> img.getProduct().getId()));
+
+        return productPage.map(p -> mapToProductResponseWithPreloaded(
+                p,
+                variantsByProduct.getOrDefault(p.getId(), List.of()),
+                imagesByProduct.getOrDefault(p.getId(), List.of())
+        ));
+    }
+
+    private ProductResponse mapToProductResponseWithPreloaded(Product product, List<ProductVariant> variants, List<ProductImage> images) {
+        int totalStock = 0;
+        if (!variants.isEmpty()) {
+            totalStock = variants.stream()
+                    .mapToInt(v -> v.getStockQty() != null ? v.getStockQty() : 0)
+                    .sum();
+        } else {
+            totalStock = product.getStockQty() != null ? product.getStockQty() : 0;
+        }
+
+        List<ProductImageResponse> imageResponses = images.stream()
+                .map(img -> ProductImageResponse.builder()
+                        .id(img.getId()).url(img.getUrl())
+                        .altText(img.getAltText()).isPrimary(img.isPrimary())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<ProductVariantResponse> variantResponses = variants.stream()
+                .map(this::mapToVariantResponse)
+                .collect(Collectors.toList());
+
+        return ProductResponse.builder()
+                .id(product.getId())
+                .sku(product.getSku())
+                .name(product.getName())
+                .slug(product.getSlug())
+                .description(product.getDescription())
+                .brand(product.getBrand())
+                .categoryName(product.getCategory() != null ? product.getCategory().getName() : "")
+                .basePrice(product.getBasePrice())
+                .discountPrice(product.getDiscountPrice())
+                .ratingAvg(product.getRatingAvg())
+                .stockQty(totalStock)
+                .specifications(product.getSpecifications())
+                .images(imageResponses)
+                .variants(variantResponses)
+                .build();
+    }
 
 private ProductResponse mapToProductResponse(Product product) {
     // 1. On récupère les variantes

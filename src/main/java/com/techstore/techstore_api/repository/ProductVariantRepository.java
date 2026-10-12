@@ -12,8 +12,8 @@ import java.util.Optional;
 @Repository
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, Long> {
     List<ProductVariant> findByProductId(Long productId);
-// Dans ProductVariantRepository.java, ajoute :
-Optional<ProductVariant> findBySkuVariant(String skuVariant);
+    List<ProductVariant> findByProductIdIn(List<Long> productIds);
+    Optional<ProductVariant> findBySkuVariant(String skuVariant);
     @Transactional
 @Modifying
 @Query("DELETE FROM ProductVariant v WHERE v.product.id = ?1")

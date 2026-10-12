@@ -3,6 +3,8 @@ package com.techstore.techstore_api.service;
 import com.techstore.techstore_api.model.AppSetting;
 import com.techstore.techstore_api.repository.AppSettingRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +14,7 @@ public class AppSettingService {
 
     private final AppSettingRepository appSettingRepository;
 
+    @Cacheable("settings")
     public AppSetting getSettings() {
         return appSettingRepository.findAll().stream().findFirst().orElseGet(() -> {
             AppSetting defaultSettings = new AppSetting();
@@ -20,6 +23,7 @@ public class AppSettingService {
     }
 
     @Transactional
+    @CacheEvict(value = "settings", allEntries = true)
     public AppSetting updateSettings(AppSetting newSettings) {
         AppSetting current = getSettings();
         current.setSiteName(newSettings.getSiteName());
