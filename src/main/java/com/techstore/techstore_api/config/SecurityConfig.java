@@ -82,26 +82,31 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 }
 
     @Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    
-    // On autorise localhost, ton domaine principal Vercel, ET tous les sous-domaines de tes déploiements Vercel ✨
-    configuration.setAllowedOriginPatterns(List.of(
-        "http://localhost:5173",
-        "https://techelectronique-frond-end.vercel.app",
-        "https://techelectronique-front-end.vercel.app",
-        "https://*-valdes-hacks-projects.vercel.app" // Autorise toutes les URLs de test Vercel
-    ));
-    
-    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(List.of("*")); 
-    configuration.setExposedHeaders(Arrays.asList("X-Session-Id", "Authorization"));
-    configuration.setAllowCredentials(true);
-    
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        // Autorise localhost, le nouveau domaine Vercel PEOC, et tous les sous-domaines Vercel/Render
+        configuration.setAllowedOriginPatterns(List.of(
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "https://*.vercel.app",
+            "https://petit-eleveur-ouest-cameroun.vercel.app",
+            "https://techelectronique-frond-end.vercel.app",
+            "https://techelectronique-front-end.vercel.app",
+            "https://*.onrender.com",
+            "*"
+        ));
+        
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
+        configuration.setAllowedHeaders(List.of("*")); 
+        configuration.setExposedHeaders(Arrays.asList("X-Session-Id", "Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
