@@ -19,6 +19,7 @@ public class ProductResponse {
     private BigDecimal discountPrice;
     private Double ratingAvg;
     private Integer stockQty;
+    private Boolean isActive;
     private String specifications;
     
     // Listes liées

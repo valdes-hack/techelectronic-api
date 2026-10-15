@@ -197,7 +197,24 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
 
     return mapToProductResponse(productRepository.save(product));
 }
-  @Override
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> getAllProductsForAdmin(Pageable pageable) {
+        return mapProductPage(productRepository.findAll(pageable));
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse toggleProductStatus(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produit non trouvé avec l'id : " + id));
+        product.setActive(!product.isActive());
+        Product updated = productRepository.save(product);
+        return mapToProductResponse(updated);
+    }
+
+    @Override
     @Transactional
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id).orElseThrow();
@@ -308,6 +325,7 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
                 .discountPrice(product.getDiscountPrice())
                 .ratingAvg(product.getRatingAvg())
                 .stockQty(totalStock)
+                .isActive(product.isActive())
                 .specifications(product.getSpecifications())
                 .images(imageResponses)
                 .variants(variantResponses)
@@ -355,6 +373,7 @@ private ProductResponse mapToProductResponse(Product product) {
             .ratingAvg(product.getRatingAvg())
             // ✨ ON ENVOIE LE TOTAL CALCULÉ ✨
             .stockQty(totalStock) 
+            .isActive(product.isActive())
             .specifications(product.getSpecifications())
             .images(imageResponses)
             .variants(variantResponses)

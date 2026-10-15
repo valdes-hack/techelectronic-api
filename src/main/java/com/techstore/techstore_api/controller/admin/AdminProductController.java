@@ -45,7 +45,7 @@ public class AdminProductController {
             @RequestParam(defaultValue = "10") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<ProductResponse> products = productService.getAllProducts(pageable); 
+        Page<ProductResponse> products = productService.getAllProductsForAdmin(pageable); 
         
         return ResponseEntity.ok(ApiResponse.<Page<ProductResponse>>builder()
                 .status("success").code(200).message("Inventaire récupéré")
@@ -167,5 +167,16 @@ public class AdminProductController {
         productService.deleteVariant(variantId);
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .status("success").message("Variante supprimée").build());
+    }
+
+    /**
+     * 8. ACTIVER / DÉSACTIVER UN PRODUIT (METTRE EN LIGNE / HORS LIGNE)
+     */
+    @RequestMapping(value = "/{id}/toggle-status", method = { RequestMethod.PATCH, RequestMethod.PUT, RequestMethod.POST })
+    public ResponseEntity<ApiResponse<ProductResponse>> toggleProductStatus(@PathVariable Long id) {
+        ProductResponse response = productService.toggleProductStatus(id);
+        String message = Boolean.TRUE.equals(response.getIsActive()) ? "Produit mis en ligne avec succès" : "Produit retiré de la ligne";
+        return ResponseEntity.ok(ApiResponse.<ProductResponse>builder()
+                .status("success").code(200).message(message).data(response).build());
     }
 }

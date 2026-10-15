@@ -23,6 +23,8 @@ public interface ProductService {
     ProductResponse getProductBySlug(String slug);
     ProductResponse createProduct(ProductRequest productRequest);
     ProductResponse updateProduct(Long id, ProductRequest productRequest);
+    Page<ProductResponse> getAllProductsForAdmin(Pageable pageable);
+    ProductResponse toggleProductStatus(Long id);
     // Dans ProductService.java
 ProductVariantResponse addVariant(Long productId, VariantRequest request);
 ProductVariantResponse updateVariant(Long variantId, VariantRequest request);
