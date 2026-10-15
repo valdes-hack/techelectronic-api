@@ -78,17 +78,20 @@ public class OrderServiceImpl implements OrderService {
         shippingAddress = addressRepository.save(shippingAddress);
 
         // --- ÉTAPE 3 : RÉCUPÉRATION DU PANIER ---
-        Cart cart;
-        if (userEmail != null) {
-            cart = cartRepository.findByUserId(user.getId())
-                    .orElseThrow(() -> new RuntimeException("Votre panier est vide"));
-        } else {
-            cart = cartRepository.findBySessionId(request.getSessionId())
-                    .orElseThrow(() -> new RuntimeException("Panier introuvable pour la session : " + request.getSessionId()));
+        Cart cart = null;
+        if (userEmail != null && user != null) {
+            cart = cartRepository.findByUserId(user.getId()).orElse(null);
+            if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+                if (request.getSessionId() != null && !request.getSessionId().trim().isEmpty()) {
+                    cart = cartRepository.findBySessionId(request.getSessionId()).orElse(null);
+                }
+            }
+        } else if (request.getSessionId() != null && !request.getSessionId().trim().isEmpty()) {
+            cart = cartRepository.findBySessionId(request.getSessionId()).orElse(null);
         }
 
-        if (cart.getItems().isEmpty()) {
-            throw new RuntimeException("Impossible de commander : le panier est vide");
+        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+            throw new RuntimeException("Impossible de commander : votre panier est vide");
         }
 
         // --- ÉTAPE 4 : LIVRAISON & FACTURATION ---
@@ -140,9 +143,17 @@ public class OrderServiceImpl implements OrderService {
         // --- ÉTAPE 7 : SAUVEGARDE ET NETTOYAGE ---
         Order savedOrder = orderRepository.saveAndFlush(order);
         
-        // On vide le panier (soit par email, soit par sessionId)
-        String cartIdentifier = (userEmail != null) ? userEmail : request.getSessionId();
-        cartService.clearCart(cartIdentifier, userEmail != null);
+        // On vide le panier (pour utilisateur et pour sessionId)
+        try {
+            if (userEmail != null) {
+                cartService.clearCart(userEmail, true);
+            }
+            if (request.getSessionId() != null && !request.getSessionId().trim().isEmpty()) {
+                cartService.clearCart(request.getSessionId(), false);
+            }
+        } catch (Exception e) {
+            System.err.println("Avertissement nettoyage panier: " + e.getMessage());
+        }
 
         // --- ÉTAPE 8 : NOTIFICATIONS EMAILS ---
         try { 
