@@ -22,6 +22,9 @@ public class ProductVariant {
     @Column(nullable = false)
     private BigDecimal price;
 
+    @Column(name = "cost_price")
+    private BigDecimal costPrice;
+
     @Column(nullable = false)
     private Integer stockQty;
 
@@ -51,14 +54,5 @@ public class ProductVariant {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    // Alias method for service compatibility
-    public void setCostPrice(BigDecimal costPrice) {
-        // Cost price is not stored in variant, but we accept it for compatibility
-    }
-
-    public BigDecimal getCostPrice() {
-        return null; // Cost price is stored in Product, not Variant
     }
 }
