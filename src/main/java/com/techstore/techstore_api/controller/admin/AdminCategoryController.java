@@ -46,10 +46,17 @@ public class AdminCategoryController {
     }
 
     /**
-     * 3. CRÉER UNE CATÉGORIE (AVEC ICÔNE)
+     * 3. CRÉER UNE CATÉGORIE (JSON OU MULTIPART)
      */
+    @PostMapping(consumes = {"application/json"})
+    public ResponseEntity<ApiResponse<CategoryResponse>> createJson(@RequestBody CategoryRequest request) {
+        CategoryResponse response = categoryService.createCategory(request);
+        return ResponseEntity.status(201).body(ApiResponse.<CategoryResponse>builder()
+                .status("success").code(201).message("Catégorie créée").data(response).build());
+    }
+
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<ApiResponse<CategoryResponse>> create(
+    public ResponseEntity<ApiResponse<CategoryResponse>> createMultipart(
             @RequestPart("category") String categoryJson,
             @RequestPart(value = "file", required = false) MultipartFile file) throws Exception {
         
@@ -65,10 +72,19 @@ public class AdminCategoryController {
     }
 
     /**
-     * 4. MODIFIER UNE CATÉGORIE
+     * 4. MODIFIER UNE CATÉGORIE (JSON OU MULTIPART)
      */
+    @PutMapping(value = "/{id}", consumes = {"application/json"})
+    public ResponseEntity<ApiResponse<CategoryResponse>> updateJson(
+            @PathVariable Long id,
+            @RequestBody CategoryRequest request) {
+        CategoryResponse response = categoryService.updateCategory(id, request);
+        return ResponseEntity.ok(ApiResponse.<CategoryResponse>builder()
+                .status("success").code(200).message("Catégorie mise à jour").data(response).build());
+    }
+
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
-    public ResponseEntity<ApiResponse<CategoryResponse>> update(
+    public ResponseEntity<ApiResponse<CategoryResponse>> updateMultipart(
             @PathVariable Long id,
             @RequestPart("category") String categoryJson,
             @RequestPart(value = "file", required = false) MultipartFile file) throws Exception {
@@ -85,12 +101,22 @@ public class AdminCategoryController {
     }
 
     /**
-     * 5. SUPPRIMER (SOFT DELETE)
+     * 5. SUPPRIMER UNE CATÉGORIE
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.ok(ApiResponse.<Void>builder()
-                .status("success").code(200).message("Catégorie désactivée avec succès").build());
+                .status("success").code(200).message("Catégorie supprimée avec succès").build());
+    }
+
+    /**
+     * 6. VIDER TOUTES LES CATÉGORIES (PURGE)
+     */
+    @DeleteMapping("/purge-all")
+    public ResponseEntity<ApiResponse<Void>> purgeAll() {
+        categoryService.purgeAllCategories();
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status("success").code(200).message("Toutes les catégories ont été supprimées avec succès").build());
     }
 }

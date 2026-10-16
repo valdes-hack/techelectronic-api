@@ -133,8 +133,10 @@ public class CategoryServiceImpl implements CategoryService {
                 .slug(cat.getSlug())
                 .iconUrl(cat.getIconUrl())
                 .parentId(cat.getParent() != null ? cat.getParent().getId() : null)
+                .isActive(cat.isActive())
                 .build();
     }
+
     @Override
     @Transactional
     @CacheEvict(value = "categories", allEntries = true)
@@ -142,9 +144,22 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
         
-        // On ne supprime pas la ligne SQL, on la désactive
-        category.setActive(false);
-        categoryRepository.save(category);
+        // Dissocier les produits rattachés pour éviter toute contrainte de clé étrangère
+        productRepository.unlinkCategory(id);
+        
+        // Supprimer réellement la catégorie de la base
+        categoryRepository.delete(category);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "categories", allEntries = true)
+    public void purgeAllCategories() {
+        // Dissocier tous les produits des catégories
+        productRepository.unlinkAllCategories();
+        
+        // Vider la table des catégories
+        categoryRepository.deleteAll();
     }
 
     @Override

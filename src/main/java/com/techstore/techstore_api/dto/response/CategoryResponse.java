@@ -11,4 +11,5 @@ public class CategoryResponse {
     private String slug;
     private String iconUrl;
     private Long parentId; // On envoie juste l'ID du parent pour éviter la boucle
+    private Boolean isActive;
 }

@@ -27,6 +27,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Page<Product> findByIsActiveTrue(Pageable pageable);
 
+    @Transactional
+    @Modifying
+    @Query("UPDATE Product p SET p.category = null WHERE p.category.id = :categoryId")
+    void unlinkCategory(@Param("categoryId") Long categoryId);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE Product p SET p.category = null")
+    void unlinkAllCategories();
+
     // Compter les produits en stock faible pour le dashboard
     long countByStockQtyLessThanAndIsActiveTrue(Integer threshold);
     

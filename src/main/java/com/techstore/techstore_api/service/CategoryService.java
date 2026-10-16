@@ -11,6 +11,7 @@ public interface CategoryService {
     
     CategoryResponse getCategoryById(Long id);
     void deleteCategory(Long id);
+    void purgeAllCategories();
     List<CategoryResponse> getAllCategories();
     List<CategoryResponse> getParentCategories();
     List<com.techstore.techstore_api.dto.response.CategoryGroupedResponse> getGroupedCategories();
