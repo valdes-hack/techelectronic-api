@@ -25,9 +25,9 @@ public class ProductImage {
     @Builder.Default
     private Boolean isPrimary = false;
 
-    @Column
+    @Column(name = "sort_order")
     @Builder.Default
-    private Integer displayOrder = 0;
+    private Integer sortOrder = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -57,5 +57,13 @@ public class ProductImage {
 
     public void setPrimary(boolean primary) {
         this.isPrimary = primary;
+    }
+
+    public Integer getDisplayOrder() {
+        return sortOrder;
+    }
+
+    public void setDisplayOrder(Integer displayOrder) {
+        this.sortOrder = displayOrder;
     }
 }
