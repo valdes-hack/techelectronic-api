@@ -2,6 +2,7 @@ package com.techstore.techstore_api.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,13 +30,13 @@ public class Product {
     private String brand;
 
     @Column(nullable = false)
-    private Long basePrice;
+    private BigDecimal basePrice;
 
     @Column
-    private Long costPrice;
+    private BigDecimal costPrice;
 
     @Column
-    private Long discountPrice;
+    private BigDecimal discountPrice;
 
     @Column(nullable = false)
     private Integer stockQty;

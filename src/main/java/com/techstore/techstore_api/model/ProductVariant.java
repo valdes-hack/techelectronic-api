@@ -2,6 +2,7 @@ package com.techstore.techstore_api.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,7 +20,7 @@ public class ProductVariant {
     private String skuVariant;
 
     @Column(nullable = false)
-    private Long price;
+    private BigDecimal price;
 
     @Column(nullable = false)
     private Integer stockQty;
@@ -53,11 +54,11 @@ public class ProductVariant {
     }
 
     // Alias method for service compatibility
-    public void setCostPrice(Long costPrice) {
+    public void setCostPrice(BigDecimal costPrice) {
         // Cost price is not stored in variant, but we accept it for compatibility
     }
 
-    public Long getCostPrice() {
+    public BigDecimal getCostPrice() {
         return null; // Cost price is stored in Product, not Variant
     }
 }
