@@ -28,6 +28,7 @@ public class ProductVariant {
     private String attributes; // {"Couleur": "Noir", "Taille": "M"}
 
     @Column
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -49,5 +50,14 @@ public class ProductVariant {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    // Alias method for service compatibility
+    public void setCostPrice(Long costPrice) {
+        // Cost price is not stored in variant, but we accept it for compatibility
+    }
+
+    public Long getCostPrice() {
+        return null; // Cost price is stored in Product, not Variant
     }
 }

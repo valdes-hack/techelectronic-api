@@ -22,9 +22,11 @@ public class ProductImage {
     private String altText;
 
     @Column
+    @Builder.Default
     private Boolean isPrimary = false;
 
     @Column
+    @Builder.Default
     private Integer displayOrder = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -46,5 +48,14 @@ public class ProductImage {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    // Alias methods for service compatibility
+    public boolean isPrimary() {
+        return isPrimary != null && isPrimary;
+    }
+
+    public void setPrimary(boolean primary) {
+        this.isPrimary = primary;
     }
 }

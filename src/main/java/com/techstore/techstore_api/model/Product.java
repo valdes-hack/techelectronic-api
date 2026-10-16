@@ -44,16 +44,23 @@ public class Product {
     private String sku;
 
     @Column
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column
+    @Builder.Default
     private Boolean isNew = false;
 
     @Column
+    @Builder.Default
     private Double ratingAvg = 4.5;
 
     @Column
+    @Builder.Default
     private Integer reviewCount = 0;
+
+    @Column(columnDefinition = "TEXT")
+    private String specifications;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -83,5 +90,22 @@ public class Product {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    // Alias methods for service compatibility
+    public boolean isActive() {
+        return isActive != null && isActive;
+    }
+
+    public void setActive(boolean active) {
+        this.isActive = active;
+    }
+
+    public String getSpecifications() {
+        return specifications;
+    }
+
+    public void setSpecifications(String specifications) {
+        this.specifications = specifications;
     }
 }
