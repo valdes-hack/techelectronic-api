@@ -29,5 +29,7 @@ public interface ProductService {
 ProductVariantResponse addVariant(Long productId, VariantRequest request);
 ProductVariantResponse updateVariant(Long variantId, VariantRequest request);
 void deleteVariant(Long variantId);
-void deleteProduct(Long id);
+    void deleteProduct(Long id);
+    void hardDeleteProduct(Long id);
+    void purgeAllProducts();
 }

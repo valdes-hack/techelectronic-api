@@ -42,6 +42,22 @@ public class AppSettingService {
             settings.setContactPhone("+237 686 669 222");
             modified = true;
         }
+        if (settings.getBentoPoultryImageUrl() == null || settings.getBentoPoultryImageUrl().isBlank()) {
+            settings.setBentoPoultryImageUrl("https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=1200&q=80");
+            modified = true;
+        }
+        if (settings.getBentoIncubatorImageUrl() == null || settings.getBentoIncubatorImageUrl().isBlank()) {
+            settings.setBentoIncubatorImageUrl("https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=800&q=80");
+            modified = true;
+        }
+        if (settings.getBentoFeedImageUrl() == null || settings.getBentoFeedImageUrl().isBlank()) {
+            settings.setBentoFeedImageUrl("https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&q=80");
+            modified = true;
+        }
+        if (settings.getBentoHealthImageUrl() == null || settings.getBentoHealthImageUrl().isBlank()) {
+            settings.setBentoHealthImageUrl("https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&q=80");
+            modified = true;
+        }
         if (modified) {
             settings = appSettingRepository.save(settings);
         }
@@ -70,6 +86,19 @@ public class AppSettingService {
             current.getHeroImagesUrls().addAll(newSettings.getHeroImagesUrls());
         }
         current.setHeroVideoUrl(newSettings.getHeroVideoUrl());
+        
+        if (newSettings.getBentoPoultryImageUrl() != null) {
+            current.setBentoPoultryImageUrl(newSettings.getBentoPoultryImageUrl());
+        }
+        if (newSettings.getBentoIncubatorImageUrl() != null) {
+            current.setBentoIncubatorImageUrl(newSettings.getBentoIncubatorImageUrl());
+        }
+        if (newSettings.getBentoFeedImageUrl() != null) {
+            current.setBentoFeedImageUrl(newSettings.getBentoFeedImageUrl());
+        }
+        if (newSettings.getBentoHealthImageUrl() != null) {
+            current.setBentoHealthImageUrl(newSettings.getBentoHealthImageUrl());
+        }
 
         return appSettingRepository.save(current);
     }

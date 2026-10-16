@@ -147,6 +147,26 @@ public class AdminProductController {
     }
 
     /**
+     * SUPPRESSION DÉFINITIVE D'UN PRODUIT (HARD DELETE)
+     */
+    @DeleteMapping("/{id}/hard")
+    public ResponseEntity<ApiResponse<Void>> hardDelete(@PathVariable Long id) {
+        productService.hardDeleteProduct(id);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status("success").code(200).message("Produit supprimé définitivement").build());
+    }
+
+    /**
+     * PURGE DE TOUS LES PRODUITS
+     */
+    @DeleteMapping("/purge-all")
+    public ResponseEntity<ApiResponse<Void>> purgeAll() {
+        productService.purgeAllProducts();
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status("success").code(200).message("Tous les produits ont été supprimés avec succès").build());
+    }
+
+    /**
      * 6. AJOUTER UNE VARIANTE
      */
     @PostMapping("/{productId}/variants")

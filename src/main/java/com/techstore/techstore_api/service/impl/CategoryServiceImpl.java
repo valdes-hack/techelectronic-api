@@ -144,10 +144,13 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
         
-        // Dissocier les produits rattachés pour éviter toute contrainte de clé étrangère
+        // 1. Dissocier les produits rattachés pour éviter toute contrainte de clé étrangère
         productRepository.unlinkCategory(id);
+
+        // 2. Dissocier les sous-catégories rattachées (supprime la contrainte parent_id)
+        categoryRepository.unlinkParent(id);
         
-        // Supprimer réellement la catégorie de la base
+        // 3. Supprimer réellement la catégorie de la base
         categoryRepository.delete(category);
     }
 
@@ -155,10 +158,13 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     @CacheEvict(value = "categories", allEntries = true)
     public void purgeAllCategories() {
-        // Dissocier tous les produits des catégories
+        // 1. Dissocier tous les produits des catégories
         productRepository.unlinkAllCategories();
         
-        // Vider la table des catégories
+        // 2. Dissocier toutes les relations parent-enfant pour éviter les contraintes FK
+        categoryRepository.unlinkAllParents();
+
+        // 3. Vider la table des catégories
         categoryRepository.deleteAll();
     }
 

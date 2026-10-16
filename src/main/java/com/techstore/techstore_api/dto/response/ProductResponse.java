@@ -14,7 +14,8 @@ public class ProductResponse {
     private String slug;
     private String description;
     private String brand;
-    private String categoryName; // On envoie juste le nom de la catégorie, c'est plus léger
+    private Long categoryId;
+    private String categoryName;
     private BigDecimal basePrice;
     private BigDecimal discountPrice;
     private Double ratingAvg;

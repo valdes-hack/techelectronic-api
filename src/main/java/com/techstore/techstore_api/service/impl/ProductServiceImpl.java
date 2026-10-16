@@ -222,6 +222,19 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
         productRepository.save(product);
     }
 
+    @Override
+    @Transactional
+    public void hardDeleteProduct(Long id) {
+        productRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void purgeAllProducts() {
+        productRepository.unlinkAllCategories();
+        productRepository.deleteAll();
+    }
+
     // ==========================================
     // 🎨 GESTION VARIANTES (ADMIN)
     // ==========================================
@@ -320,6 +333,7 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
                 .slug(product.getSlug())
                 .description(product.getDescription())
                 .brand(product.getBrand())
+                .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
                 .categoryName(product.getCategory() != null ? product.getCategory().getName() : "")
                 .basePrice(product.getBasePrice())
                 .discountPrice(product.getDiscountPrice())
@@ -367,7 +381,8 @@ private ProductResponse mapToProductResponse(Product product) {
             .slug(product.getSlug())
             .description(product.getDescription())
             .brand(product.getBrand())
-            .categoryName(product.getCategory().getName())
+            .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
+            .categoryName(product.getCategory() != null ? product.getCategory().getName() : "")
             .basePrice(product.getBasePrice())
             .discountPrice(product.getDiscountPrice())
             .ratingAvg(product.getRatingAvg())
