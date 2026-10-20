@@ -97,6 +97,8 @@ public ProductResponse createProduct(ProductRequest request) {
             .category(category)
             .basePrice(request.getBasePrice())
             .costPrice(request.getCostPrice())
+            .discountPrice(request.getDiscountPrice())
+            .specifications(request.getSpecifications())
             .stockQty(initialStock) 
             .isActive(true)
             .build();
@@ -155,6 +157,8 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
     product.setDescription(request.getDescription());
     product.setBasePrice(request.getBasePrice());
     product.setCostPrice(request.getCostPrice());
+    product.setDiscountPrice(request.getDiscountPrice());
+    product.setSpecifications(request.getSpecifications());
     
     if(request.getCategoryId() != null) {
         Category category = categoryRepository.findById(request.getCategoryId()).orElseThrow();
@@ -170,19 +174,17 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
         });
     }
 
-    // 3. Mise à jour des variantes
+    // 3. Mise à jour des variantes : synchronisation propre
     if (request.getVariants() != null) {
+        variantRepository.deleteByProductId(id);
         request.getVariants().forEach(vReq -> {
-            // Chercher par SKU de variante
-            ProductVariant variant = variantRepository.findBySkuVariant(vReq.getSkuVariant())
-                    .orElse(new ProductVariant());
-
-            variant.setProduct(product);
-            variant.setSkuVariant(vReq.getSkuVariant());
-            variant.setPrice(vReq.getPrice());
-            variant.setStockQty(vReq.getStockQty() != null ? vReq.getStockQty() : 0);
-            variant.setAttributes(vReq.getAttributes());
-            variantRepository.save(variant);
+            variantRepository.save(ProductVariant.builder()
+                    .product(product)
+                    .skuVariant(vReq.getSkuVariant())
+                    .price(vReq.getPrice())
+                    .stockQty(vReq.getStockQty() != null ? vReq.getStockQty() : 0)
+                    .attributes(vReq.getAttributes())
+                    .build());
         });
 
         int variantTotal = request.getVariants().stream()
