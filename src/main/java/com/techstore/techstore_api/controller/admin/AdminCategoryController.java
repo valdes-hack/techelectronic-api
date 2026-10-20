@@ -62,8 +62,12 @@ public class AdminCategoryController {
         
         CategoryRequest request = objectMapper.readValue(categoryJson, CategoryRequest.class);
         if (file != null && !file.isEmpty()) {
-            String fileName = fileStorageService.storeFile(file);
-            request.setIconUrl("http://localhost:8080/uploads/categories/" + fileName);
+            String fileUrlOrName = fileStorageService.storeFile(file);
+            if (fileUrlOrName.startsWith("http://") || fileUrlOrName.startsWith("https://")) {
+                request.setIconUrl(fileUrlOrName);
+            } else {
+                request.setIconUrl(baseUrl + "/uploads/categories/" + fileUrlOrName);
+            }
         }
 
         CategoryResponse response = categoryService.createCategory(request);
@@ -91,8 +95,12 @@ public class AdminCategoryController {
         
         CategoryRequest request = objectMapper.readValue(categoryJson, CategoryRequest.class);
         if (file != null && !file.isEmpty()) {
-            String fileName = fileStorageService.storeFile(file);
-            request.setIconUrl("http://localhost:8080/uploads/categories/" + fileName);
+            String fileUrlOrName = fileStorageService.storeFile(file);
+            if (fileUrlOrName.startsWith("http://") || fileUrlOrName.startsWith("https://")) {
+                request.setIconUrl(fileUrlOrName);
+            } else {
+                request.setIconUrl(baseUrl + "/uploads/categories/" + fileUrlOrName);
+            }
         }
 
         CategoryResponse response = categoryService.updateCategory(id, request);

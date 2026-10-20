@@ -34,6 +34,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Transactional
     @Modifying
+    @Query("DELETE FROM Product p WHERE p.category.id = :categoryId")
+    void deleteByCategoryId(@Param("categoryId") Long categoryId);
+
+    @Transactional
+    @Modifying
     @Query("UPDATE Product p SET p.category = null")
     void unlinkAllCategories();
 

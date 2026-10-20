@@ -145,12 +145,25 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() -> new RuntimeException("Catégorie non trouvée"));
         
         // 1. Dissocier les produits rattachés pour éviter toute contrainte de clé étrangère
-        productRepository.unlinkCategory(id);
+        try {
+            productRepository.unlinkCategory(id);
+        } catch (Exception e) {
+            // Si category_id était encore contraint NOT NULL, supprimer les produits associés
+            productRepository.deleteByCategoryId(id);
+        }
 
         // 2. Dissocier les sous-catégories rattachées (supprime la contrainte parent_id)
         categoryRepository.unlinkParent(id);
+
+        // 3. Couper la cascade Hibernate mémoire
+        if (category.getSubCategories() != null) {
+            for (Category child : category.getSubCategories()) {
+                child.setParent(null);
+            }
+            category.getSubCategories().clear();
+        }
         
-        // 3. Supprimer réellement la catégorie de la base
+        // 4. Supprimer réellement la catégorie de la base
         categoryRepository.delete(category);
     }
 
@@ -159,7 +172,11 @@ public class CategoryServiceImpl implements CategoryService {
     @CacheEvict(value = "categories", allEntries = true)
     public void purgeAllCategories() {
         // 1. Dissocier tous les produits des catégories
-        productRepository.unlinkAllCategories();
+        try {
+            productRepository.unlinkAllCategories();
+        } catch (Exception e) {
+            productRepository.deleteAll();
+        }
         
         // 2. Dissocier toutes les relations parent-enfant pour éviter les contraintes FK
         categoryRepository.unlinkAllParents();
