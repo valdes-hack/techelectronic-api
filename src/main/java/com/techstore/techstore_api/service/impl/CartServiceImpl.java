@@ -205,24 +205,33 @@ public class CartServiceImpl implements CartService {
      * MÉTHODE PRIVÉE : MAPPING DTO
      */
     private CartResponse mapToResponse(Cart cart) {
-        List<CartItemResponse> itemResponses = cart.getItems().stream().map(item -> {
-            BigDecimal subTotal = item.getUnitPrice().multiply(new BigDecimal(item.getQuantity()));
-            
-            // Récupération de l'image principale pour React
-            String imageUrl = (item.getProduct().getImages() != null && !item.getProduct().getImages().isEmpty()) 
-                    ? item.getProduct().getImages().get(0).getUrl() : "";
+        if (cart == null || cart.getItems() == null) {
+            return CartResponse.builder().items(new ArrayList<>()).totalAmount(BigDecimal.ZERO).totalItems(0).build();
+        }
 
-            return CartItemResponse.builder()
-                    .id(item.getId())
-                    .productId(item.getProduct().getId())
-                    .productName(item.getProduct().getName())
-                    .variantAttributes(item.getVariant() != null ? item.getVariant().getAttributes() : "Standard")
-                    .imageUrl(imageUrl)
-                    .quantity(item.getQuantity())
-                    .unitPrice(item.getUnitPrice())
-                    .subTotal(subTotal)
-                    .build();
-        }).collect(Collectors.toList());
+        List<CartItemResponse> itemResponses = cart.getItems().stream()
+            .filter(item -> item != null && item.getProduct() != null)
+            .map(item -> {
+                BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice() 
+                    : (item.getProduct().getDiscountPrice() != null ? item.getProduct().getDiscountPrice() : item.getProduct().getBasePrice());
+                if (unitPrice == null) unitPrice = BigDecimal.ZERO;
+                int qty = item.getQuantity() != null ? item.getQuantity() : 1;
+                BigDecimal subTotal = unitPrice.multiply(new BigDecimal(qty));
+                
+                String imageUrl = (item.getProduct().getImages() != null && !item.getProduct().getImages().isEmpty()) 
+                        ? item.getProduct().getImages().get(0).getUrl() : "";
+
+                return CartItemResponse.builder()
+                        .id(item.getId())
+                        .productId(item.getProduct().getId())
+                        .productName(item.getProduct().getName())
+                        .variantAttributes(item.getVariant() != null ? item.getVariant().getAttributes() : "Standard")
+                        .imageUrl(imageUrl)
+                        .quantity(qty)
+                        .unitPrice(unitPrice)
+                        .subTotal(subTotal)
+                        .build();
+            }).collect(Collectors.toList());
 
         BigDecimal total = itemResponses.stream()
                 .map(CartItemResponse::getSubTotal)

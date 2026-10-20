@@ -77,8 +77,10 @@ public class ProductServiceImpl implements ProductService {
    @Override
 @Transactional
 public ProductResponse createProduct(ProductRequest request) {
-    Category category = categoryRepository.findById(request.getCategoryId())
-            .orElseThrow(() -> new RuntimeException("Catégorie inexistante."));
+    Category category = null;
+    if (request.getCategoryId() != null) {
+        category = categoryRepository.findById(request.getCategoryId()).orElse(null);
+    }
 
     int initialStock = request.getStockQty() != null ? request.getStockQty() : 0;
     if (request.getVariants() != null && !request.getVariants().isEmpty()) {
@@ -296,7 +298,7 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
                 .filter(v -> v.getProduct() != null)
                 .collect(Collectors.groupingBy(v -> v.getProduct().getId()));
 
-        Map<Long, List<ProductImage>> imagesByProduct = imageRepository.findByProductIdInOrderBySortOrderAsc(productIds).stream()
+        Map<Long, List<ProductImage>> imagesByProduct = imageRepository.findByProductIdInOrderByIdAsc(productIds).stream()
                 .filter(img -> img.getProduct() != null)
                 .collect(Collectors.groupingBy(img -> img.getProduct().getId()));
 
@@ -364,7 +366,7 @@ private ProductResponse mapToProductResponse(Product product) {
     }
 
     // 3. Mapping des images (inchangé)
-    List<ProductImageResponse> imageResponses = imageRepository.findByProductIdOrderBySortOrderAsc(product.getId()).stream()
+    List<ProductImageResponse> imageResponses = imageRepository.findByProductIdOrderByIdAsc(product.getId()).stream()
             .map(img -> ProductImageResponse.builder()
                     .id(img.getId()).url(img.getUrl())
                     .altText(img.getAltText()).isPrimary(img.isPrimary())

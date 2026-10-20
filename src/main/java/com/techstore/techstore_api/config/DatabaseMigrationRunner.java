@@ -51,5 +51,21 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
         } catch (Exception e) {
             log.warn("ℹ️ [MIGRATION] Info remplacement localhost icon_url : {}", e.getMessage());
         }
+
+        // 4. S'assurer que sort_order existe dans product_images
+        try {
+            jdbcTemplate.execute("ALTER TABLE product_images ADD COLUMN sort_order INT DEFAULT 0");
+            log.info("✅ [MIGRATION] Colonne product_images.sort_order ajoutée");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] Colonne product_images.sort_order déjà existante");
+        }
+
+        // 5. S'assurer que specifications existe dans products
+        try {
+            jdbcTemplate.execute("ALTER TABLE products ADD COLUMN specifications TEXT NULL");
+            log.info("✅ [MIGRATION] Colonne products.specifications ajoutée");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] Colonne products.specifications déjà existante");
+        }
     }
 }

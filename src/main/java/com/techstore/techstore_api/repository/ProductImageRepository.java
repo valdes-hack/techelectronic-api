@@ -10,11 +10,15 @@ import java.util.List;
 
 @Repository
 public interface ProductImageRepository extends JpaRepository<ProductImage, Long> {
-    List<ProductImage> findByProductIdOrderBySortOrderAsc(Long productId);
-    List<ProductImage> findByProductIdInOrderBySortOrderAsc(List<Long> productIds);
+    List<ProductImage> findByProductId(Long productId);
+    List<ProductImage> findByProductIdIn(List<Long> productIds);
+
+    // Méthodes ordonnées par ID (garanti 100% compatible SQL et MySQL)
+    List<ProductImage> findByProductIdOrderByIdAsc(Long productId);
+    List<ProductImage> findByProductIdInOrderByIdAsc(List<Long> productIds);
 
     @Transactional
-@Modifying
-@Query("DELETE FROM ProductImage i WHERE i.product.id = ?1")
-void deleteByProductId(Long productId);
+    @Modifying
+    @Query("DELETE FROM ProductImage i WHERE i.product.id = ?1")
+    void deleteByProductId(Long productId);
 }
