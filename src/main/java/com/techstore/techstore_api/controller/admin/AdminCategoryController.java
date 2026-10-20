@@ -7,6 +7,7 @@ import com.techstore.techstore_api.dto.response.CategoryResponse;
 import com.techstore.techstore_api.service.CategoryService;
 import com.techstore.techstore_api.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,9 @@ public class AdminCategoryController {
     private final CategoryService categoryService;
     private final FileStorageService fileStorageService;
     private final ObjectMapper objectMapper;
+
+    @Value("${app.base-url:}")
+    private String baseUrl;
 
     /**
      * 1. LISTER TOUTES LES CATÉGORIES (ADMIN)
