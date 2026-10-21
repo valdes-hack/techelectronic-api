@@ -111,10 +111,14 @@ public class ProductServiceImpl implements ProductService {
             if (variantTotal > 0) initialStock = variantTotal;
         }
 
+        String rawName = request.getName() != null && !request.getName().trim().isEmpty() ? request.getName().trim() : "Nouveau Produit";
+        String safeName = rawName.substring(0, Math.min(rawName.length(), 490));
+        String safeSlug = finalSlug.substring(0, Math.min(finalSlug.length(), 490));
+
         Product product = Product.builder()
-                .name(request.getName() != null ? request.getName() : "Nouveau Produit")
+                .name(safeName)
                 .sku(sku)
-                .slug(finalSlug)
+                .slug(safeSlug)
                 .description(request.getDescription())
                 .brand(brand)
                 .category(category)

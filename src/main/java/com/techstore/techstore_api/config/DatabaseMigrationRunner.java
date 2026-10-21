@@ -116,6 +116,50 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
             log.info("ℹ️ [MIGRATION] product_variants.price info : {}", e.getMessage());
         }
 
+        // 12. Agrandir la taille de products.name (évite Data too long for column 'name')
+        try {
+            jdbcTemplate.execute("ALTER TABLE products MODIFY name VARCHAR(500) NOT NULL");
+            log.info("✅ [MIGRATION] products.name agrandi à VARCHAR(500)");
+        } catch (Exception e) {
+            log.warn("⚠️ [MIGRATION] Erreur agrandissement products.name : {}", e.getMessage());
+        }
+
+        // 13. Agrandir la taille de products.slug
+        try {
+            jdbcTemplate.execute("ALTER TABLE products MODIFY slug VARCHAR(500) NOT NULL");
+            log.info("✅ [MIGRATION] products.slug agrandi à VARCHAR(500)");
+        } catch (Exception e) {
+            log.warn("⚠️ [MIGRATION] Erreur agrandissement products.slug : {}", e.getMessage());
+        }
+
+        // 14. Nettoyer les dates '0000-00-00 00:00:00' (évite MysqlDataTruncation)
+        try {
+            jdbcTemplate.execute("SET SQL_MODE = 'ALLOW_INVALID_DATES'");
+            jdbcTemplate.execute("UPDATE products SET created_at = NOW() WHERE created_at = '0000-00-00 00:00:00' OR created_at IS NULL");
+            jdbcTemplate.execute("UPDATE products SET updated_at = NOW() WHERE updated_at = '0000-00-00 00:00:00' OR updated_at IS NULL");
+            jdbcTemplate.execute("ALTER TABLE products MODIFY created_at DATETIME NULL");
+            jdbcTemplate.execute("ALTER TABLE products MODIFY updated_at DATETIME NULL");
+            log.info("✅ [MIGRATION] products dates nettoyées et rendues nullables");
+        } catch (Exception e) {
+            log.warn("⚠️ [MIGRATION] Nettoyage dates products info : {}", e.getMessage());
+        }
+
+        try {
+            jdbcTemplate.execute("ALTER TABLE product_variants MODIFY created_at DATETIME NULL");
+            jdbcTemplate.execute("ALTER TABLE product_variants MODIFY updated_at DATETIME NULL");
+            log.info("✅ [MIGRATION] product_variants dates rendues nullables");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] product_variants dates info : {}", e.getMessage());
+        }
+
+        try {
+            jdbcTemplate.execute("ALTER TABLE carts MODIFY created_at DATETIME NULL");
+            jdbcTemplate.execute("ALTER TABLE carts MODIFY updated_at DATETIME NULL");
+            log.info("✅ [MIGRATION] carts dates rendues nullables");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] carts dates info : {}", e.getMessage());
+        }
+
         log.info("✅ [MIGRATION] Vérification du schéma terminée.");
     }
 }

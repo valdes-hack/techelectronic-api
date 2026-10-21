@@ -20,10 +20,10 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 500)
     private String slug;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String name;
 
     @Column(columnDefinition = "TEXT")
