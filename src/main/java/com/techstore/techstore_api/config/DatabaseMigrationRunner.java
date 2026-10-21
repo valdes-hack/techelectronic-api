@@ -67,5 +67,55 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
         } catch (Exception e) {
             log.info("ℹ️ [MIGRATION] Colonne products.specifications déjà existante");
         }
+
+        // 6. S'assurer que attributes existe dans product_variants (type TEXT pour compatibilité max)
+        try {
+            jdbcTemplate.execute("ALTER TABLE product_variants ADD COLUMN attributes TEXT NULL");
+            log.info("✅ [MIGRATION] Colonne product_variants.attributes ajoutée");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] Colonne product_variants.attributes déjà existante");
+        }
+
+        // 7. S'assurer que cost_price existe dans product_variants
+        try {
+            jdbcTemplate.execute("ALTER TABLE product_variants ADD COLUMN cost_price DECIMAL(19,2) NULL");
+            log.info("✅ [MIGRATION] Colonne product_variants.cost_price ajoutée");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] Colonne product_variants.cost_price déjà existante");
+        }
+
+        // 8. S'assurer que sku existe dans products (nullable)
+        try {
+            jdbcTemplate.execute("ALTER TABLE products ADD COLUMN sku VARCHAR(255) NULL");
+            log.info("✅ [MIGRATION] Colonne products.sku ajoutée");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] Colonne products.sku déjà existante");
+        }
+
+        // 9. S'assurer que cost_price existe dans products
+        try {
+            jdbcTemplate.execute("ALTER TABLE products ADD COLUMN cost_price DECIMAL(19,2) NULL");
+            log.info("✅ [MIGRATION] Colonne products.cost_price ajoutée");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] Colonne products.cost_price déjà existante");
+        }
+
+        // 10. Rendre sku_variant nullable dans product_variants (évite erreur si non fourni)
+        try {
+            jdbcTemplate.execute("ALTER TABLE product_variants MODIFY sku_variant VARCHAR(255) NULL");
+            log.info("✅ [MIGRATION] product_variants.sku_variant rendu nullable");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] product_variants.sku_variant info : {}", e.getMessage());
+        }
+
+        // 11. Rendre price nullable dans product_variants
+        try {
+            jdbcTemplate.execute("ALTER TABLE product_variants MODIFY price DECIMAL(19,2) NULL");
+            log.info("✅ [MIGRATION] product_variants.price rendu nullable");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] product_variants.price info : {}", e.getMessage());
+        }
+
+        log.info("✅ [MIGRATION] Vérification du schéma terminée.");
     }
 }

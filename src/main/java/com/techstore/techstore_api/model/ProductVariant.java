@@ -16,17 +16,18 @@ public class ProductVariant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true, unique = false)
     private String skuVariant;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private BigDecimal price;
 
     @Column(name = "cost_price")
     private BigDecimal costPrice;
 
-    @Column(nullable = false)
-    private Integer stockQty;
+    @Column(nullable = true)
+    @Builder.Default
+    private Integer stockQty = 0;
 
     @Column(columnDefinition = "JSON")
     private String attributes; // {"Couleur": "Noir", "Taille": "M"}
