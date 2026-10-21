@@ -74,62 +74,91 @@ public class ProductServiceImpl implements ProductService {
     // 🛠️ GESTION PRODUITS (ADMIN)
     // ==========================================
 
-   @Override
-@Transactional
-public ProductResponse createProduct(ProductRequest request) {
-    Category category = null;
-    if (request.getCategoryId() != null) {
-        category = categoryRepository.findById(request.getCategoryId()).orElse(null);
+    @Override
+    @Transactional
+    public ProductResponse createProduct(ProductRequest request) {
+        Category category = null;
+        if (request.getCategoryId() != null) {
+            category = categoryRepository.findById(request.getCategoryId()).orElse(null);
+        }
+
+        // 1. Slug unique et sécurisé
+        String baseSlug = (request.getSlug() != null && !request.getSlug().trim().isEmpty())
+                ? request.getSlug().trim().toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "")
+                : (request.getName() != null ? request.getName().toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "") : "produit");
+        if (baseSlug.isEmpty()) baseSlug = "produit-" + System.currentTimeMillis();
+        
+        String finalSlug = baseSlug;
+        int counter = 1;
+        while (productRepository.findBySlug(finalSlug).isPresent()) {
+            finalSlug = baseSlug + "-" + counter++;
+        }
+
+        // 2. SKU sécurisé
+        String sku = (request.getSku() != null && !request.getSku().trim().isEmpty()) 
+                ? request.getSku().trim() 
+                : "PEOC-" + (System.currentTimeMillis() % 1000000);
+
+        // 3. Marque & prix sécurisés
+        String brand = (request.getBrand() != null && !request.getBrand().trim().isEmpty()) ? request.getBrand().trim() : "PEOC";
+        BigDecimal basePrice = request.getBasePrice() != null ? request.getBasePrice() : BigDecimal.ZERO;
+
+        int initialStock = request.getStockQty() != null ? request.getStockQty() : 0;
+        if (request.getVariants() != null && !request.getVariants().isEmpty()) {
+            int variantTotal = request.getVariants().stream()
+                    .mapToInt(v -> v.getStockQty() != null ? v.getStockQty() : 0)
+                    .sum();
+            if (variantTotal > 0) initialStock = variantTotal;
+        }
+
+        Product product = Product.builder()
+                .name(request.getName() != null ? request.getName() : "Nouveau Produit")
+                .sku(sku)
+                .slug(finalSlug)
+                .description(request.getDescription())
+                .brand(brand)
+                .category(category)
+                .basePrice(basePrice)
+                .costPrice(request.getCostPrice())
+                .discountPrice(request.getDiscountPrice())
+                .specifications(request.getSpecifications())
+                .stockQty(initialStock) 
+                .isActive(true)
+                .build();
+        
+        Product savedProduct = productRepository.save(product);
+
+        // ✨ SAUVEGARDE DES IMAGES
+        if (request.getImageUrls() != null) {
+            request.getImageUrls().forEach(url -> {
+                imageRepository.save(ProductImage.builder()
+                        .url(url).product(savedProduct).isPrimary(false).build());
+            });
+        }
+
+        // ✨ SAUVEGARDE DES VARIANTES (Si présentes à la création)
+        if (request.getVariants() != null) {
+            int vIdx = 1;
+            for (ProductRequest.VariantRequest vReq : request.getVariants()) {
+                String vSku = (vReq.getSkuVariant() != null && !vReq.getSkuVariant().trim().isEmpty())
+                        ? vReq.getSkuVariant().trim()
+                        : sku + "-V" + (vIdx++);
+                
+                BigDecimal vPrice = vReq.getPrice() != null ? vReq.getPrice() : basePrice;
+
+                variantRepository.save(ProductVariant.builder()
+                        .product(savedProduct)
+                        .skuVariant(vSku)
+                        .price(vPrice)
+                        .costPrice(vReq.getCostPrice() != null ? vReq.getCostPrice() : request.getCostPrice())
+                        .stockQty(vReq.getStockQty() != null ? vReq.getStockQty() : 0)
+                        .attributes(vReq.getAttributes())
+                        .build());
+            }
+        }
+
+        return mapToProductResponse(savedProduct);
     }
-
-    int initialStock = request.getStockQty() != null ? request.getStockQty() : 0;
-    if (request.getVariants() != null && !request.getVariants().isEmpty()) {
-        int variantTotal = request.getVariants().stream()
-                .mapToInt(v -> v.getStockQty() != null ? v.getStockQty() : 0)
-                .sum();
-        if (variantTotal > 0) initialStock = variantTotal;
-    }
-
-    Product product = Product.builder()
-            .name(request.getName())
-            .sku(request.getSku())
-            .slug(request.getSlug())
-            .description(request.getDescription())
-            .brand(request.getBrand())
-            .category(category)
-            .basePrice(request.getBasePrice())
-            .costPrice(request.getCostPrice())
-            .discountPrice(request.getDiscountPrice())
-            .specifications(request.getSpecifications())
-            .stockQty(initialStock) 
-            .isActive(true)
-            .build();
-    
-    Product savedProduct = productRepository.save(product);
-
-    // ✨ SAUVEGARDE DES IMAGES
-    if (request.getImageUrls() != null) {
-        request.getImageUrls().forEach(url -> {
-            imageRepository.save(ProductImage.builder()
-                    .url(url).product(savedProduct).isPrimary(false).build());
-        });
-    }
-
-    // ✨ SAUVEGARDE DES VARIANTES (Si présentes à la création)
-    if (request.getVariants() != null) {
-        request.getVariants().forEach(vReq -> {
-            variantRepository.save(ProductVariant.builder()
-                    .product(savedProduct)
-                    .skuVariant(vReq.getSkuVariant())
-                    .price(vReq.getPrice())
-                    .stockQty(vReq.getStockQty() != null ? vReq.getStockQty() : 0)
-                    .attributes(vReq.getAttributes())
-                    .build());
-        });
-    }
-
-    return mapToProductResponse(savedProduct);
-}
 @Override
 @Transactional
 public ProductResponse updateProduct(Long id, ProductRequest request) {

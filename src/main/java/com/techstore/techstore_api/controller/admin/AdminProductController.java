@@ -10,6 +10,7 @@ import com.techstore.techstore_api.service.FileStorageService;
 import com.techstore.techstore_api.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/admin/products")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+@Slf4j
 public class AdminProductController {
 
     private final ProductService productService;
@@ -90,6 +92,7 @@ public class AdminProductController {
                     .status("success").code(201).message("Produit créé").data(response).build());
 
         } catch (Exception e) {
+            log.error("❌ Erreur lors de la création du produit : ", e);
             return ResponseEntity.status(500).body(ApiResponse.<ProductResponse>builder()
                     .status("error").code(500).message("Erreur création : " + e.getMessage()).build());
         }
@@ -130,7 +133,7 @@ public class AdminProductController {
                     .status("success").code(200).message("Produit mis à jour").data(response).build());
 
         } catch (Exception e) {
-            e.printStackTrace(); // Pour voir l'erreur complète dans les logs
+            log.error("❌ Erreur lors de la mise à jour du produit {} : ", id, e);
             return ResponseEntity.status(500).body(ApiResponse.<ProductResponse>builder()
                     .status("error").code(500).message("Erreur mise à jour : " + e.getMessage()).build());
         }
