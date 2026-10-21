@@ -25,6 +25,7 @@ public class CartServiceImpl implements CartService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final ProductVariantRepository variantRepository;
+    private final ProductImageRepository imageRepository;
 
     /**
      * AJOUTER AU PANIER (Visiteur ou Connecté)
@@ -209,17 +210,31 @@ public class CartServiceImpl implements CartService {
             return CartResponse.builder().items(new ArrayList<>()).totalAmount(BigDecimal.ZERO).totalItems(0).build();
         }
 
+        // Collecter tous les productIds pour charger les images en une seule requête
+        List<Long> productIds = cart.getItems().stream()
+            .filter(item -> item != null && item.getProduct() != null)
+            .map(item -> item.getProduct().getId())
+            .collect(Collectors.toList());
+
+        java.util.Map<Long, String> firstImageByProduct = productIds.isEmpty()
+            ? java.util.Collections.emptyMap()
+            : imageRepository.findByProductIdInOrderByIdAsc(productIds).stream()
+                .collect(Collectors.toMap(
+                    img -> img.getProduct().getId(),
+                    img -> img.getUrl(),
+                    (existing, replacement) -> existing // garder la première image
+                ));
+
         List<CartItemResponse> itemResponses = cart.getItems().stream()
             .filter(item -> item != null && item.getProduct() != null)
             .map(item -> {
-                BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice() 
+                BigDecimal unitPrice = item.getUnitPrice() != null ? item.getUnitPrice()
                     : (item.getProduct().getDiscountPrice() != null ? item.getProduct().getDiscountPrice() : item.getProduct().getBasePrice());
                 if (unitPrice == null) unitPrice = BigDecimal.ZERO;
                 int qty = item.getQuantity() != null ? item.getQuantity() : 1;
                 BigDecimal subTotal = unitPrice.multiply(new BigDecimal(qty));
-                
-                String imageUrl = (item.getProduct().getImages() != null && !item.getProduct().getImages().isEmpty()) 
-                        ? item.getProduct().getImages().get(0).getUrl() : "";
+
+                String imageUrl = firstImageByProduct.getOrDefault(item.getProduct().getId(), "");
 
                 return CartItemResponse.builder()
                         .id(item.getId())

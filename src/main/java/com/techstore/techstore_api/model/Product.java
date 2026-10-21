@@ -8,10 +8,13 @@ import java.util.List;
 
 @Entity
 @Table(name = "products")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"variants", "images", "reviews", "category"})
+@EqualsAndHashCode(exclude = {"variants", "images", "reviews", "category"})
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -93,20 +96,12 @@ public class Product {
         updatedAt = LocalDateTime.now();
     }
 
-    // Alias methods for service compatibility
+    // Alias method for service compatibility
     public boolean isActive() {
         return isActive != null && isActive;
     }
 
     public void setActive(boolean active) {
         this.isActive = active;
-    }
-
-    public String getSpecifications() {
-        return specifications;
-    }
-
-    public void setSpecifications(String specifications) {
-        this.specifications = specifications;
     }
 }

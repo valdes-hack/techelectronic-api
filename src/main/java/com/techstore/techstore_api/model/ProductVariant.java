@@ -7,10 +7,13 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "product_variants")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"product"})
+@EqualsAndHashCode(exclude = {"product"})
 public class ProductVariant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +32,7 @@ public class ProductVariant {
     @Builder.Default
     private Integer stockQty = 0;
 
-    @Column(columnDefinition = "JSON")
+    @Column(columnDefinition = "TEXT")
     private String attributes; // {"Couleur": "Noir", "Taille": "M"}
 
     @Column
