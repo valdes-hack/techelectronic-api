@@ -13,13 +13,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Optional; // ✨ AJOUTE CET IMPORT ✨
+import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
@@ -28,6 +30,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductVariantRepository variantRepository;
     private final ProductImageRepository imageRepository;
+    private final CartItemRepository cartItemRepository;
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     // ==========================================
@@ -201,29 +204,83 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
         product.setCategory(category);
     }
 
-    // 2. Gestion des images : On ne supprime que si on reçoit une nouvelle liste
+    // 2. Gestion des images : synchronisation directe sur la collection de l'entité
     if (request.getImageUrls() != null) {
-        imageRepository.deleteByProductId(id);
-        request.getImageUrls().forEach(url -> {
-            imageRepository.save(ProductImage.builder()
-                    .url(url).product(product).build());
-        });
+        if (product.getImages() == null) {
+            product.setImages(new ArrayList<>());
+        } else {
+            product.getImages().clear();
+        }
+        boolean isFirst = true;
+        for (String url : request.getImageUrls()) {
+            if (url != null && !url.trim().isEmpty()) {
+                product.getImages().add(ProductImage.builder()
+                        .product(product)
+                        .url(url.trim())
+                        .isPrimary(isFirst)
+                        .build());
+                isFirst = false;
+            }
+        }
     }
 
-    // 3. Mise à jour des variantes : synchronisation propre
+    // 3. Mise à jour des variantes : synchronisation propre sur l'entité sans désynchronisation JPA
     if (request.getVariants() != null) {
-        variantRepository.deleteByProductId(id);
-        request.getVariants().forEach(vReq -> {
-            variantRepository.save(ProductVariant.builder()
-                    .product(product)
-                    .skuVariant(vReq.getSkuVariant())
-                    .price(vReq.getPrice())
-                    .stockQty(vReq.getStockQty() != null ? vReq.getStockQty() : 0)
-                    .attributes(vReq.getAttributes())
-                    .build());
-        });
+        // Détacher les variantes de cart_items pour éviter toute violation de clé étrangère
+        try {
+            cartItemRepository.detachVariantByProductId(id);
+        } catch (Exception e) {
+            log.warn("Notice: Impossible de détacher cart_items pour le produit {} : {}", id, e.getMessage());
+        }
 
-        int variantTotal = request.getVariants().stream()
+        if (product.getVariants() == null) {
+            product.setVariants(new ArrayList<>());
+        }
+
+        // On indexe les variantes existantes par ID pour réutiliser les entités existantes sans changer leurs clés
+        Map<Long, ProductVariant> existingMap = product.getVariants().stream()
+                .filter(v -> v.getId() != null)
+                .collect(Collectors.toMap(ProductVariant::getId, v -> v, (a, b) -> a));
+
+        List<ProductVariant> updatedVariants = new ArrayList<>();
+        int vIdx = 1;
+
+        for (ProductRequest.VariantRequest vReq : request.getVariants()) {
+            String vSku = (vReq.getSkuVariant() != null && !vReq.getSkuVariant().trim().isEmpty())
+                    ? vReq.getSkuVariant().trim()
+                    : product.getSku() + "-V" + (vIdx++);
+
+            BigDecimal vPrice = vReq.getPrice() != null ? vReq.getPrice() : product.getBasePrice();
+            BigDecimal vCost = vReq.getCostPrice() != null ? vReq.getCostPrice() : product.getCostPrice();
+            int vStock = vReq.getStockQty() != null ? vReq.getStockQty() : 0;
+
+            ProductVariant pv;
+            if (vReq.getId() != null && existingMap.containsKey(vReq.getId())) {
+                pv = existingMap.get(vReq.getId());
+                pv.setSkuVariant(vSku);
+                pv.setPrice(vPrice);
+                pv.setCostPrice(vCost);
+                pv.setStockQty(vStock);
+                pv.setAttributes(vReq.getAttributes());
+                pv.setIsActive(true);
+            } else {
+                pv = ProductVariant.builder()
+                        .product(product)
+                        .skuVariant(vSku)
+                        .price(vPrice)
+                        .costPrice(vCost)
+                        .stockQty(vStock)
+                        .attributes(vReq.getAttributes())
+                        .isActive(true)
+                        .build();
+            }
+            updatedVariants.add(pv);
+        }
+
+        product.getVariants().clear();
+        product.getVariants().addAll(updatedVariants);
+
+        int variantTotal = updatedVariants.stream()
                 .mapToInt(v -> v.getStockQty() != null ? v.getStockQty() : 0)
                 .sum();
         if (variantTotal > 0 || request.getStockQty() == null) {
@@ -233,7 +290,8 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
         product.setStockQty(request.getStockQty());
     }
 
-    return mapToProductResponse(productRepository.save(product));
+    Product savedProduct = productRepository.saveAndFlush(product);
+    return mapToProductResponse(savedProduct);
 }
 
     @Override

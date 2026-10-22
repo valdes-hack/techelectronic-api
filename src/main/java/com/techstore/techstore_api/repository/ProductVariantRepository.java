@@ -15,9 +15,9 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     List<ProductVariant> findByProductIdIn(List<Long> productIds);
     Optional<ProductVariant> findBySkuVariant(String skuVariant);
     @Transactional
-@Modifying
-@Query("DELETE FROM ProductVariant v WHERE v.product.id = ?1")
-void deleteByProductId(Long productId);
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE FROM ProductVariant v WHERE v.product.id = ?1")
+    void deleteByProductId(Long productId);
 
     // Compter les variantes en stock faible pour le dashboard
     long countByStockQtyLessThan(Integer threshold);
