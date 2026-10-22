@@ -69,18 +69,16 @@ public class AdminProductController {
      */
     @PostMapping(consumes = { "multipart/form-data" })
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(
-            @RequestPart("product") String productJson, 
+            @RequestPart("product") Object productInput, 
             @RequestPart(value = "files", required = false) List<MultipartFile> files) {
         
         try {
-            ProductRequest request = objectMapper.readValue(productJson, ProductRequest.class);
+            ProductRequest request = parseProductRequest(productInput);
 
             if (files != null && !files.isEmpty()) {
                 List<String> imageUrls = files.stream()
                         .map(file -> {
                             String storedUrl = fileStorageService.storeFile(file);
-                            // Si l'URL est déjà complète (Cloudinary), l'utiliser telle quelle
-                            // Sinon, ajouter le préfixe local
                             return storedUrl.startsWith("http") ? storedUrl : baseUrl + "/uploads/products/" + storedUrl;
                         })
                         .collect(Collectors.toList());
@@ -104,19 +102,17 @@ public class AdminProductController {
     @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
             @PathVariable Long id,
-            @RequestPart("product") String productJson, 
+            @RequestPart("product") Object productInput, 
             @RequestPart(value = "files", required = false) List<MultipartFile> files) {
         
         try {
-            ProductRequest request = objectMapper.readValue(productJson, ProductRequest.class);
+            ProductRequest request = parseProductRequest(productInput);
 
             if (files != null && !files.isEmpty()) {
                 List<String> newUrls = files.stream()
                         .map(file -> {
                             try {
                                 String storedUrl = fileStorageService.storeFile(file);
-                                // Si l'URL est déjà complète (Cloudinary), l'utiliser telle quelle
-                                // Sinon, ajouter le préfixe local
                                 return storedUrl.startsWith("http") ? storedUrl : baseUrl + "/uploads/products/" + storedUrl;
                             } catch (Exception e) {
                                 throw new RuntimeException("Erreur lors du stockage de l'image: " + e.getMessage(), e);
@@ -136,6 +132,23 @@ public class AdminProductController {
             log.error("❌ Erreur lors de la mise à jour du produit {} : ", id, e);
             return ResponseEntity.status(500).body(ApiResponse.<ProductResponse>builder()
                     .status("error").code(500).message("Erreur mise à jour : " + e.getMessage()).build());
+        }
+    }
+
+    private ProductRequest parseProductRequest(Object productInput) throws Exception {
+        if (productInput == null) {
+            return new ProductRequest();
+        }
+        if (productInput instanceof ProductRequest pr) {
+            return pr;
+        } else if (productInput instanceof String str) {
+            return objectMapper.readValue(str, ProductRequest.class);
+        } else if (productInput instanceof MultipartFile mf) {
+            return objectMapper.readValue(mf.getInputStream(), ProductRequest.class);
+        } else if (productInput instanceof byte[] bytes) {
+            return objectMapper.readValue(bytes, ProductRequest.class);
+        } else {
+            return objectMapper.convertValue(productInput, ProductRequest.class);
         }
     }
 
