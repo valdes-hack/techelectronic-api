@@ -52,12 +52,20 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
             log.warn("ℹ️ [MIGRATION] Info remplacement localhost icon_url : {}", e.getMessage());
         }
 
-        // 4. S'assurer que sort_order existe dans product_images
+        // 4. S'assurer que sort_order, created_at, updated_at existent dans product_images
         try {
             jdbcTemplate.execute("ALTER TABLE product_images ADD COLUMN sort_order INT DEFAULT 0");
             log.info("✅ [MIGRATION] Colonne product_images.sort_order ajoutée");
         } catch (Exception e) {
             log.info("ℹ️ [MIGRATION] Colonne product_images.sort_order déjà existante");
+        }
+
+        try {
+            jdbcTemplate.execute("ALTER TABLE product_images ADD COLUMN created_at DATETIME NULL");
+            jdbcTemplate.execute("ALTER TABLE product_images ADD COLUMN updated_at DATETIME NULL");
+            log.info("✅ [MIGRATION] Colonnes product_images.created_at/updated_at ajoutées");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] Colonnes product_images.created_at/updated_at déjà existantes");
         }
 
         // 5. S'assurer que specifications existe dans products
