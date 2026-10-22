@@ -28,6 +28,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductVariantRepository variantRepository;
     private final ProductImageRepository imageRepository;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     // ==========================================
     // 🔍 LECTURE (PUBLIC & ADMIN)
@@ -262,14 +263,57 @@ public ProductResponse updateProduct(Long id, ProductRequest request) {
     @Override
     @Transactional
     public void hardDeleteProduct(Long id) {
+        // Suppression en cascade sécurisée de toutes les dépendances
+        try { jdbcTemplate.update("DELETE FROM cart_items WHERE product_id = ?", id); } catch (Exception ignored) {}
+        try { jdbcTemplate.update("DELETE FROM stock_movements WHERE product_id = ?", id); } catch (Exception ignored) {}
+        try { jdbcTemplate.update("DELETE FROM wishlists WHERE product_id = ?", id); } catch (Exception ignored) {}
+        try { jdbcTemplate.update("DELETE FROM reviews WHERE product_id = ?", id); } catch (Exception ignored) {}
+        try { jdbcTemplate.update("DELETE FROM product_images WHERE product_id = ?", id); } catch (Exception ignored) {}
+        try { jdbcTemplate.update("DELETE FROM product_variants WHERE product_id = ?", id); } catch (Exception ignored) {}
+        try { jdbcTemplate.update("DELETE FROM order_items WHERE product_id = ?", id); } catch (Exception ignored) {}
         productRepository.deleteById(id);
     }
 
     @Override
     @Transactional
     public void purgeAllProducts() {
-        productRepository.unlinkAllCategories();
-        productRepository.deleteAll();
+        try {
+            jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+            try { jdbcTemplate.execute("DELETE FROM cart_items"); } catch (Exception ignored) {}
+            try { jdbcTemplate.execute("DELETE FROM stock_movements"); } catch (Exception ignored) {}
+            try { jdbcTemplate.execute("DELETE FROM wishlists"); } catch (Exception ignored) {}
+            try { jdbcTemplate.execute("DELETE FROM reviews"); } catch (Exception ignored) {}
+            try { jdbcTemplate.execute("DELETE FROM product_images"); } catch (Exception ignored) {}
+            try { jdbcTemplate.execute("DELETE FROM product_variants"); } catch (Exception ignored) {}
+            try { jdbcTemplate.execute("DELETE FROM order_items"); } catch (Exception ignored) {}
+            productRepository.unlinkAllCategories();
+            productRepository.deleteAll();
+            jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+        } catch (Exception e) {
+            jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+            throw new RuntimeException("Erreur purge : " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void bulkDeleteProducts(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return;
+        for (Long id : ids) {
+            hardDeleteProduct(id);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void bulkToggleStatus(List<Long> ids, boolean active) {
+        if (ids == null || ids.isEmpty()) return;
+        for (Long id : ids) {
+            productRepository.findById(id).ifPresent(p -> {
+                p.setActive(active);
+                productRepository.save(p);
+            });
+        }
     }
 
     // ==========================================

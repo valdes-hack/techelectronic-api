@@ -32,4 +32,6 @@ void deleteVariant(Long variantId);
     void deleteProduct(Long id);
     void hardDeleteProduct(Long id);
     void purgeAllProducts();
+    void bulkDeleteProducts(java.util.List<Long> ids);
+    void bulkToggleStatus(java.util.List<Long> ids, boolean active);
 }

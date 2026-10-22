@@ -183,6 +183,28 @@ public class AdminProductController {
     }
 
     /**
+     * SUPPRESSION MULTIPLE (BULK DELETE)
+     */
+    @DeleteMapping("/bulk")
+    public ResponseEntity<ApiResponse<Void>> bulkDelete(@RequestBody List<Long> ids) {
+        productService.bulkDeleteProducts(ids);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status("success").code(200).message(ids.size() + " produits supprimés définitivement").build());
+    }
+
+    /**
+     * CHANGEMENT DE STATUT MULTIPLE (BULK TOGGLE)
+     */
+    @PatchMapping("/bulk-status")
+    public ResponseEntity<ApiResponse<Void>> bulkStatus(
+            @RequestParam boolean active,
+            @RequestBody List<Long> ids) {
+        productService.bulkToggleStatus(ids, active);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status("success").code(200).message("Statut mis à jour pour " + ids.size() + " produits").build());
+    }
+
+    /**
      * 6. AJOUTER UNE VARIANTE
      */
     @PostMapping("/{productId}/variants")
