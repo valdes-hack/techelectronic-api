@@ -43,6 +43,7 @@ private String country = "Cameroun";
     private String phone;
 
     @Column(name = "is_default")
+    @Builder.Default
     private boolean isDefault = false;
 
     private Double latitude;

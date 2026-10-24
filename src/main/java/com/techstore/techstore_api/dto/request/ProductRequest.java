@@ -25,6 +25,7 @@ public class ProductRequest {
 
     @Data
     public static class VariantRequest {
+        private Long id;
         private String skuVariant;
         private BigDecimal price;
         private BigDecimal costPrice;

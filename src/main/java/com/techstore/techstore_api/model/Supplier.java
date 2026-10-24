@@ -30,6 +30,7 @@ public class Supplier {
     private String phone;
 
     private String city;
+    @Builder.Default
     private String country = "Cameroun";
 
     @Builder.Default

@@ -37,6 +37,7 @@ public class Category {
     private List<Category> subCategories = new ArrayList<>();
 
     private String iconUrl;
+    @Builder.Default
     private boolean isActive = true;
 
     @CreationTimestamp

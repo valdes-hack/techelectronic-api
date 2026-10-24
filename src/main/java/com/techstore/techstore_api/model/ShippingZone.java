@@ -20,5 +20,6 @@ public class ShippingZone {
     private String city;     // Ex: Douala
     private BigDecimal deliveryFee;
     private Integer estimatedDays;
+    @Builder.Default
     private boolean isActive = true;
 }
