@@ -58,4 +58,20 @@ public class AdminNotificationController {
         notificationRepository.saveAll(unreadList);
         return ResponseEntity.ok(ApiResponse.<Void>builder().status("success").build());
     }
+
+    // 4. Supprimer une notification / historique
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteNotification(@PathVariable Long id) {
+        notificationRepository.deleteById(id);
+        return ResponseEntity.ok(ApiResponse.<Void>builder().status("success").message("Activité supprimée").build());
+    }
+
+    // 5. Supprimer plusieurs notifications / historique (Bulk Delete)
+    @DeleteMapping("/bulk-delete")
+    public ResponseEntity<ApiResponse<Void>> bulkDeleteNotifications(@RequestBody List<Long> ids) {
+        if (ids != null && !ids.isEmpty()) {
+            notificationRepository.deleteAllById(ids);
+        }
+        return ResponseEntity.ok(ApiResponse.<Void>builder().status("success").message(ids != null ? ids.size() + " activité(s) supprimée(s)" : "0").build());
+    }
 }

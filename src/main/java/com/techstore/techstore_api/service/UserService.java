@@ -27,6 +27,9 @@ public interface UserService {
     // Supprimer un utilisateur (Soft Delete via is_deleted)
     void deleteUser(Long id);
 
+    // Supprimer plusieurs utilisateurs (Bulk Soft Delete)
+    void bulkDeleteUsers(List<Long> ids);
+
 
     /**
      * --- FONCTIONNALITÉS CLIENT (PROFIL) ---

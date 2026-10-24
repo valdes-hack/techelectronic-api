@@ -29,6 +29,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
     private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
     private final CartService cartService;
     private final ShippingZoneRepository shippingZoneRepository;
     private final AdminNotificationRepository adminNotificationRepository;
@@ -115,6 +116,7 @@ public class OrderServiceImpl implements OrderService {
                 .paymentMethod(request.getPaymentMethod())
                 .status(OrderStatus.EN_ATTENTE)
                 .trackingToken(java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .orderNumber("CMD-" + System.currentTimeMillis() % 1000000)
                 .totalAmount(calculateTotal(cart).add(shippingFee))
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -122,12 +124,24 @@ public class OrderServiceImpl implements OrderService {
         // --- ÉTAPE 6 : ITEMS & DÉDUCTION DU STOCK (Snapshot) ---
         List<OrderItem> orderItems = new ArrayList<>();
         for (CartItem item : cart.getItems()) {
-            // Appel de ta procédure SQL deduct_stock
-            productRepository.deductStock(
-                item.getProduct().getId(), 
-                item.getVariant() != null ? item.getVariant().getId() : null, 
-                item.getQuantity()
-            );
+            // Déduction du stock fiable via JPA avec fallback
+            try {
+                if (item.getVariant() != null && item.getVariant().getId() != null) {
+                    productVariantRepository.findById(item.getVariant().getId()).ifPresent(v -> {
+                        int current = v.getStockQty() != null ? v.getStockQty() : 0;
+                        v.setStockQty(Math.max(0, current - item.getQuantity()));
+                        productVariantRepository.save(v);
+                    });
+                } else if (item.getProduct() != null && item.getProduct().getId() != null) {
+                    productRepository.findById(item.getProduct().getId()).ifPresent(p -> {
+                        int current = p.getStockQty() != null ? p.getStockQty() : 0;
+                        p.setStockQty(Math.max(0, current - item.getQuantity()));
+                        productRepository.save(p);
+                    });
+                }
+            } catch (Exception stockEx) {
+                System.err.println("Avertissement déduction stock: " + stockEx.getMessage());
+            }
 
             orderItems.add(OrderItem.builder()
                     .order(order)
@@ -135,7 +149,7 @@ public class OrderServiceImpl implements OrderService {
                     .variant(item.getVariant())
                     .quantity(item.getQuantity())
                     .unitPrice(item.getUnitPrice())
-                    .productName(item.getProduct().getName()) // Snapshot du nom
+                    .productName(item.getProduct() != null ? item.getProduct().getName() : "Produit")
                     .build());
         }
         order.setItems(orderItems);
@@ -229,7 +243,32 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("Commande non trouvée"));
         
         order.setStatus(status);
-        return mapToResponse(orderRepository.save(order));
+        Order updated = orderRepository.save(order);
+
+        // Notifier l'admin du changement de statut
+        try {
+            adminNotificationRepository.save(AdminNotification.builder()
+                    .title("Statut commande mis à jour")
+                    .message("Commande #" + (updated.getOrderNumber() != null ? updated.getOrderNumber() : updated.getId()) + " passée au statut : " + status)
+                    .type("ORDER_STATUS")
+                    .build());
+        } catch (Exception ignored) {}
+
+        return mapToResponse(updated);
+    }
+
+    @Override
+    @Transactional
+    public void deleteOrder(Long orderId) {
+        orderRepository.deleteById(orderId);
+    }
+
+    @Override
+    @Transactional
+    public void bulkDeleteOrders(List<Long> orderIds) {
+        if (orderIds != null && !orderIds.isEmpty()) {
+            orderRepository.deleteAllById(orderIds);
+        }
     }
 
     /**

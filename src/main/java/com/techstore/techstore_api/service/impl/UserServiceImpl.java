@@ -63,6 +63,16 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    @Transactional
+    public void bulkDeleteUsers(List<Long> ids) {
+        if (ids != null && !ids.isEmpty()) {
+            List<User> users = userRepository.findAllById(ids);
+            users.forEach(u -> u.setDeleted(true));
+            userRepository.saveAll(users);
+        }
+    }
+
     private UserResponse mapToResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId()).email(user.getEmail())

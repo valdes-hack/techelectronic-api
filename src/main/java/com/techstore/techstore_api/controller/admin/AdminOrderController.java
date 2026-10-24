@@ -54,4 +54,32 @@ public class AdminOrderController {
                 .data(response)
                 .build());
     }
+
+    /**
+     * 3. SUPPRIMER UNE COMMANDE
+     * DELETE /api/v1/admin/orders/{id}
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status("success")
+                .code(200)
+                .message("Commande supprimée")
+                .build());
+    }
+
+    /**
+     * 4. SUPPRESSION MULTIPLE DE COMMANDES
+     * DELETE /api/v1/admin/orders/bulk-delete
+     */
+    @DeleteMapping("/bulk-delete")
+    public ResponseEntity<ApiResponse<Void>> bulkDeleteOrders(@RequestBody List<Long> ids) {
+        orderService.bulkDeleteOrders(ids);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status("success")
+                .code(200)
+                .message(ids.size() + " commande(s) supprimée(s)")
+                .build());
+    }
 }

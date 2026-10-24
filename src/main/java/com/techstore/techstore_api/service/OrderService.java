@@ -12,5 +12,7 @@ public interface OrderService {
     OrderResponse getOrderDetails(Long orderId, String userEmail);
     List<OrderResponse> getAllOrdersForAdmin();
     OrderResponse getOrderByToken(String token);
-OrderResponse updateOrderStatus(Long orderId, OrderStatus status);
+    OrderResponse updateOrderStatus(Long orderId, OrderStatus status);
+    void deleteOrder(Long orderId);
+    void bulkDeleteOrders(List<Long> orderIds);
 }

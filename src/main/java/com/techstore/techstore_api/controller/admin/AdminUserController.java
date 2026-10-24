@@ -50,4 +50,11 @@ public class AdminUserController {
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .status("success").message("Utilisateur désactivé (Soft Delete)").build());
     }
+
+    @DeleteMapping("/bulk-delete")
+    public ResponseEntity<ApiResponse<Void>> bulkDelete(@RequestBody List<Long> ids) {
+        userService.bulkDeleteUsers(ids);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .status("success").message(ids.size() + " utilisateur(s) désactivé(s)").build());
+    }
 }
