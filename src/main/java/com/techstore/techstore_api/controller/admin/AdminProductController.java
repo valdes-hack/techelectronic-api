@@ -1,5 +1,6 @@
 package com.techstore.techstore_api.controller.admin;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techstore.techstore_api.dto.request.ProductRequest;
 import com.techstore.techstore_api.dto.request.VariantRequest;
@@ -97,6 +98,23 @@ public class AdminProductController {
     }
 
     /**
+     * 3b. CRÉER UN PRODUIT (JSON DIRECT)
+     */
+    @PostMapping(consumes = { "application/json" })
+    public ResponseEntity<ApiResponse<ProductResponse>> createProductJson(
+            @RequestBody ProductRequest request) {
+        try {
+            ProductResponse response = productService.createProduct(request);
+            return ResponseEntity.status(201).body(ApiResponse.<ProductResponse>builder()
+                    .status("success").code(201).message("Produit créé").data(response).build());
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de la création du produit JSON : ", e);
+            return ResponseEntity.status(500).body(ApiResponse.<ProductResponse>builder()
+                    .status("error").code(500).message("Erreur création : " + e.getMessage()).build());
+        }
+    }
+
+    /**
      * 4. MODIFIER UN PRODUIT (MULTIPART : JSON + FILES)
      */
     @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
@@ -135,20 +153,39 @@ public class AdminProductController {
         }
     }
 
+    /**
+     * 4b. MODIFIER UN PRODUIT (JSON DIRECT)
+     */
+    @PutMapping(value = "/{id}", consumes = { "application/json" })
+    public ResponseEntity<ApiResponse<ProductResponse>> updateProductJson(
+            @PathVariable Long id,
+            @RequestBody ProductRequest request) {
+        try {
+            ProductResponse response = productService.updateProduct(id, request);
+            return ResponseEntity.ok(ApiResponse.<ProductResponse>builder()
+                    .status("success").code(200).message("Produit mis à jour").data(response).build());
+        } catch (Exception e) {
+            log.error("❌ Erreur lors de la mise à jour du produit {} JSON : ", id, e);
+            return ResponseEntity.status(500).body(ApiResponse.<ProductResponse>builder()
+                    .status("error").code(500).message("Erreur mise à jour : " + e.getMessage()).build());
+        }
+    }
+
     private ProductRequest parseProductRequest(Object productInput) throws Exception {
         if (productInput == null) {
             return new ProductRequest();
         }
+        ObjectMapper safeMapper = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         if (productInput instanceof ProductRequest pr) {
             return pr;
         } else if (productInput instanceof String str) {
-            return objectMapper.readValue(str, ProductRequest.class);
+            return safeMapper.readValue(str, ProductRequest.class);
         } else if (productInput instanceof MultipartFile mf) {
-            return objectMapper.readValue(mf.getInputStream(), ProductRequest.class);
+            return safeMapper.readValue(mf.getInputStream(), ProductRequest.class);
         } else if (productInput instanceof byte[] bytes) {
-            return objectMapper.readValue(bytes, ProductRequest.class);
+            return safeMapper.readValue(bytes, ProductRequest.class);
         } else {
-            return objectMapper.convertValue(productInput, ProductRequest.class);
+            return safeMapper.convertValue(productInput, ProductRequest.class);
         }
     }
 
