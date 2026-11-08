@@ -18,6 +18,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             "SELECT r FROM Review r JOIN FETCH r.user WHERE r.product.id = :productId ORDER BY r.createdAt DESC")
     List<Review> findByProductIdWithUser(@Param("productId") Long productId);
 
+    // Charge les avis laissés par l'utilisateur connecté avec les informations du produit
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT r FROM Review r JOIN FETCH r.product WHERE r.user.email = :email ORDER BY r.createdAt DESC")
+    List<Review> findByUserEmailWithProduct(@Param("email") String email);
+
     // Vérifier si l'utilisateur a déjà noté ce produit pour cette commande
     boolean existsByUserIdAndOrderIdAndProductId(Long userId, Long orderId, Long productId);
 

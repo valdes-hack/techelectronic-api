@@ -77,6 +77,34 @@ public class ReviewController {
                 .build());
     }
 
+    /**
+     * VOIR MES PROPRES AVIS ET NOTES (Privé)
+     */
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<ReviewResponse>>> getMyReviews(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).body(ApiResponse.<List<ReviewResponse>>builder()
+                    .status("error").code(401).message("Non autorisé").build());
+        }
+        List<ReviewResponse> reviews = reviewRepository.findByUserEmailWithProduct(principal.getName()).stream()
+                .map(r -> ReviewResponse.builder()
+                        .id(r.getId())
+                        .productId(r.getProduct() != null ? r.getProduct().getId() : null)
+                        .authorName(r.getProduct() != null ? r.getProduct().getName() : "Produit PEOC")
+                        .rating(r.getRating())
+                        .title(r.getTitle())
+                        .body(r.getBody())
+                        .verified(r.isVerified())
+                        .createdAt(r.getCreatedAt())
+                        .build())
+                .toList();
+        return ResponseEntity.ok(ApiResponse.<List<ReviewResponse>>builder()
+                .status("success")
+                .code(200)
+                .data(reviews)
+                .build());
+    }
+
     /** "Valdes Hack" -> "Valdes H." ; on n'expose jamais l'email ni le nom complet. */
     private String displayName(Review r) {
         if (r.getUser() == null) return "Client";
