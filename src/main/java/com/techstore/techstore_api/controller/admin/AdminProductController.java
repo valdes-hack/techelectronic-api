@@ -70,20 +70,29 @@ public class AdminProductController {
      */
     @PostMapping(consumes = { "multipart/form-data" })
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(
-            @RequestPart("product") Object productInput, 
-            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+            @RequestParam(value = "product", required = false) String productParam,
+            @RequestPart(value = "product", required = false) Object productPart,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            jakarta.servlet.http.HttpServletRequest rawRequest) {
         
         try {
+            Object productInput = productParam != null && !productParam.isBlank() ? productParam : productPart;
+            if (productInput == null && rawRequest != null) {
+                productInput = rawRequest.getParameter("product");
+                if (productInput == null) productInput = rawRequest.getParameter("productJson");
+            }
             ProductRequest request = parseProductRequest(productInput);
 
             if (files != null && !files.isEmpty()) {
                 List<String> imageUrls = files.stream()
+                        .filter(f -> f != null && !f.isEmpty())
                         .map(file -> {
                             String storedUrl = fileStorageService.storeFile(file);
                             return storedUrl.startsWith("http") ? storedUrl : baseUrl + "/uploads/products/" + storedUrl;
                         })
                         .collect(Collectors.toList());
-                request.setImageUrls(imageUrls);
+                if (request.getImageUrls() == null) request.setImageUrls(new java.util.ArrayList<>());
+                request.getImageUrls().addAll(imageUrls);
             }
 
             ProductResponse response = productService.createProduct(request);
@@ -92,8 +101,9 @@ public class AdminProductController {
 
         } catch (Exception e) {
             log.error("❌ Erreur lors de la création du produit : ", e);
+            String detailMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
             return ResponseEntity.status(500).body(ApiResponse.<ProductResponse>builder()
-                    .status("error").code(500).message("Erreur création : " + e.getMessage()).build());
+                    .status("error").code(500).message("Erreur création : " + (detailMsg != null ? detailMsg : e.toString())).build());
         }
     }
 
@@ -109,8 +119,9 @@ public class AdminProductController {
                     .status("success").code(201).message("Produit créé").data(response).build());
         } catch (Exception e) {
             log.error("❌ Erreur lors de la création du produit JSON : ", e);
+            String detailMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
             return ResponseEntity.status(500).body(ApiResponse.<ProductResponse>builder()
-                    .status("error").code(500).message("Erreur création : " + e.getMessage()).build());
+                    .status("error").code(500).message("Erreur création : " + (detailMsg != null ? detailMsg : e.toString())).build());
         }
     }
 
@@ -120,14 +131,22 @@ public class AdminProductController {
     @PutMapping(value = "/{id}", consumes = { "multipart/form-data" })
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
             @PathVariable Long id,
-            @RequestPart("product") Object productInput, 
-            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+            @RequestParam(value = "product", required = false) String productParam,
+            @RequestPart(value = "product", required = false) Object productPart, 
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            jakarta.servlet.http.HttpServletRequest rawRequest) {
         
         try {
+            Object productInput = productParam != null && !productParam.isBlank() ? productParam : productPart;
+            if (productInput == null && rawRequest != null) {
+                productInput = rawRequest.getParameter("product");
+                if (productInput == null) productInput = rawRequest.getParameter("productJson");
+            }
             ProductRequest request = parseProductRequest(productInput);
 
             if (files != null && !files.isEmpty()) {
                 List<String> newUrls = files.stream()
+                        .filter(f -> f != null && !f.isEmpty())
                         .map(file -> {
                             try {
                                 String storedUrl = fileStorageService.storeFile(file);
@@ -148,8 +167,9 @@ public class AdminProductController {
 
         } catch (Exception e) {
             log.error("❌ Erreur lors de la mise à jour du produit {} : ", id, e);
+            String detailMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
             return ResponseEntity.status(500).body(ApiResponse.<ProductResponse>builder()
-                    .status("error").code(500).message("Erreur mise à jour : " + e.getMessage()).build());
+                    .status("error").code(500).message("Erreur mise à jour : " + (detailMsg != null ? detailMsg : e.toString())).build());
         }
     }
 
@@ -166,8 +186,9 @@ public class AdminProductController {
                     .status("success").code(200).message("Produit mis à jour").data(response).build());
         } catch (Exception e) {
             log.error("❌ Erreur lors de la mise à jour du produit {} JSON : ", id, e);
+            String detailMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
             return ResponseEntity.status(500).body(ApiResponse.<ProductResponse>builder()
-                    .status("error").code(500).message("Erreur mise à jour : " + e.getMessage()).build());
+                    .status("error").code(500).message("Erreur mise à jour : " + (detailMsg != null ? detailMsg : e.toString())).build());
         }
     }
 
@@ -175,11 +196,15 @@ public class AdminProductController {
         if (productInput == null) {
             return new ProductRequest();
         }
-        ObjectMapper safeMapper = objectMapper.copy().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ObjectMapper safeMapper = objectMapper.copy()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
         if (productInput instanceof ProductRequest pr) {
             return pr;
         } else if (productInput instanceof String str) {
-            return safeMapper.readValue(str, ProductRequest.class);
+            String trimmed = str.trim();
+            if (trimmed.isEmpty() || trimmed.equals("{}")) return new ProductRequest();
+            return safeMapper.readValue(trimmed, ProductRequest.class);
         } else if (productInput instanceof MultipartFile mf) {
             return safeMapper.readValue(mf.getInputStream(), ProductRequest.class);
         } else if (productInput instanceof byte[] bytes) {

@@ -42,6 +42,10 @@ public class Collection {
     @Column(name = "icon_url", length = 500)
     private String iconUrl;
 
+    // Photo ou image d'arrière-plan de la collection (bannière)
+    @Column(name = "banner_url", length = 1000)
+    private String bannerUrl;
+
     /**
      * Type de collection : TYPE (type de produit), USAGE (mode d'élevage), PROMO (marketing).
      * Sert uniquement au front pour grouper l'affichage. Libre, non bloquant.

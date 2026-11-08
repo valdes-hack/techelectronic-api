@@ -1,5 +1,6 @@
 package com.techstore.techstore_api.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CollectionRequest {
 
     private String name;
@@ -20,8 +22,11 @@ public class CollectionRequest {
 
     private String description;
 
-    /** Emoji ("🐣") ou URL d'image. */
+    /** Emoji ("🐣") ou URL d'icône. */
     private String iconUrl;
+
+    /** URL de la photo d'arrière-plan de la collection. */
+    private String bannerUrl;
 
     /** TYPE, USAGE ou PROMO (libre). */
     private String collectionType;

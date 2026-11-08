@@ -14,6 +14,7 @@ public class CollectionResponse {
     private String slug;
     private String description;
     private String iconUrl;
+    private String bannerUrl;
     private String collectionType;
     private Integer sortOrder;
     private Boolean isActive;

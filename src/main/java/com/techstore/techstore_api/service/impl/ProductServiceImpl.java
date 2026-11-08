@@ -85,6 +85,9 @@ public class ProductServiceImpl implements ProductService {
         if (request.getCategoryId() != null) {
             category = categoryRepository.findById(request.getCategoryId()).orElse(null);
         }
+        if (category == null) {
+            category = categoryRepository.findAll().stream().findFirst().orElse(null);
+        }
 
         // 1. Slug unique et sécurisé
         String baseSlug = (request.getSlug() != null && !request.getSlug().trim().isEmpty())
@@ -98,10 +101,15 @@ public class ProductServiceImpl implements ProductService {
             finalSlug = baseSlug + "-" + counter++;
         }
 
-        // 2. SKU sécurisé
+        // 2. SKU sécurisé et unique
         String sku = (request.getSku() != null && !request.getSku().trim().isEmpty()) 
                 ? request.getSku().trim() 
                 : "PEOC-" + (System.currentTimeMillis() % 1000000);
+        String baseSku = sku;
+        int skuCounter = 1;
+        while (productRepository.findBySku(sku).isPresent()) {
+            sku = baseSku + "-" + skuCounter++;
+        }
 
         // 3. Marque & prix sécurisés
         String brand = (request.getBrand() != null && !request.getBrand().trim().isEmpty()) ? request.getBrand().trim() : "PEOC";
@@ -138,14 +146,16 @@ public class ProductServiceImpl implements ProductService {
 
         // ✨ SAUVEGARDE DES IMAGES
         if (request.getImageUrls() != null) {
-            request.getImageUrls().forEach(url -> {
-                imageRepository.save(ProductImage.builder()
-                        .url(url).product(savedProduct).isPrimary(false).build());
-            });
+            for (String url : request.getImageUrls()) {
+                if (url != null && !url.trim().isEmpty()) {
+                    imageRepository.save(ProductImage.builder()
+                            .url(url.trim()).product(savedProduct).isPrimary(false).build());
+                }
+            }
         }
 
         // ✨ SAUVEGARDE DES VARIANTES (Si présentes à la création)
-        if (request.getVariants() != null) {
+        if (request.getVariants() != null && !request.getVariants().isEmpty()) {
             int vIdx = 1;
             for (ProductRequest.VariantRequest vReq : request.getVariants()) {
                 String vSku = (vReq.getSkuVariant() != null && !vReq.getSkuVariant().trim().isEmpty())
@@ -160,7 +170,7 @@ public class ProductServiceImpl implements ProductService {
                         .price(vPrice)
                         .costPrice(vReq.getCostPrice() != null ? vReq.getCostPrice() : request.getCostPrice())
                         .stockQty(vReq.getStockQty() != null ? vReq.getStockQty() : 0)
-                        .attributes(vReq.getAttributes())
+                        .attributes(vReq.getAttributes() != null ? vReq.getAttributes() : "{}")
                         .build());
             }
         }

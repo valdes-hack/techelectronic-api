@@ -168,6 +168,14 @@ public class DatabaseMigrationRunner implements CommandLineRunner {
             log.info("ℹ️ [MIGRATION] carts dates info : {}", e.getMessage());
         }
 
+        // 15. S'assurer que banner_url existe dans collections
+        try {
+            jdbcTemplate.execute("ALTER TABLE collections ADD COLUMN banner_url VARCHAR(1000) NULL");
+            log.info("✅ [MIGRATION] Colonne collections.banner_url ajoutée");
+        } catch (Exception e) {
+            log.info("ℹ️ [MIGRATION] Colonne collections.banner_url déjà existante");
+        }
+
         log.info("✅ [MIGRATION] Vérification du schéma terminée.");
     }
 }

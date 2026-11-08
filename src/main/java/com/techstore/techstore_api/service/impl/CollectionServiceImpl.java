@@ -116,6 +116,7 @@ public class CollectionServiceImpl implements CollectionService {
                 .slug(slug)
                 .description(request.getDescription())
                 .iconUrl(request.getIconUrl())
+                .bannerUrl(request.getBannerUrl())
                 .collectionType(request.getCollectionType() != null ? request.getCollectionType() : "TYPE")
                 .isActive(request.getIsActive() != null ? request.getIsActive() : true)
                 .sortOrder(request.getSortOrder() != null ? request.getSortOrder() : 0)
@@ -155,6 +156,7 @@ public class CollectionServiceImpl implements CollectionService {
 
         if (request.getDescription() != null) collection.setDescription(request.getDescription());
         if (request.getIconUrl() != null) collection.setIconUrl(request.getIconUrl());
+        if (request.getBannerUrl() != null) collection.setBannerUrl(request.getBannerUrl());
         if (request.getCollectionType() != null && !request.getCollectionType().isBlank()) {
             collection.setCollectionType(request.getCollectionType());
         }
@@ -324,6 +326,7 @@ public class CollectionServiceImpl implements CollectionService {
                 .slug(collection.getSlug())
                 .description(collection.getDescription())
                 .iconUrl(collection.getIconUrl())
+                .bannerUrl(collection.getBannerUrl())
                 .collectionType(collection.getCollectionType())
                 .sortOrder(collection.getSortOrder())
                 .isActive(collection.isActive())
